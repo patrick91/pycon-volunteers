@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { graphql } from '@/graphql';
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email address'),
@@ -13,6 +14,28 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
+
+const LOGIN_MUTATION = graphql(
+    `mutation Login($email: String!, $password: String!) {
+    login(input: { email: $email, password: $password }) {
+        __typename
+        ... on LoginSuccess {
+        user {
+            id
+            email
+            }
+            }
+        ... on LoginErrors {
+        errors {
+            email
+            password
+            }
+        
+        }
+    }
+}
+    `
+)
 
 export default function SignIn() {
     const {
