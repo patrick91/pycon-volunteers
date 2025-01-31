@@ -14,12 +14,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { graphql } from '@/graphql';
+import { graphql, readFragment } from '@/graphql';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Logo } from '@/components/logo';
 import { useMutation } from '@apollo/client';
 import { useRouter } from 'expo-router';
 import { useSession } from '@/context/auth';
+import { USER_PROFILE_FRAGMENT } from './(app)/(tabs)/profile';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -28,29 +29,30 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-const LOGIN_MUTATION = graphql(`
-  mutation Login($email: String!, $password: String!, $conferenceCode: String!) {
+const LOGIN_MUTATION = graphql(
+  `
+  mutation Login($email: String!, $password: String!) {
     login(input: { email: $email, password: $password }) {
-        __typename
-        ... on LoginSuccess {
-            user {
-                id
-                email
-                conferenceRoles(conferenceCode: $conferenceCode) 
-            }
+      __typename
+      ... on LoginSuccess {
+        user {
+          ...UserProfile 
         }
-        ... on WrongEmailOrPassword {
-            message
+      }
+      ... on WrongEmailOrPassword {
+        message
+      }
+      ... on LoginErrors {
+        errors {
+          email
+          password
         }
-        ... on LoginErrors {
-            errors {
-                email
-                password
-            }
-        }
+      }
     }
-}
-`);
+  }
+`,
+  [USER_PROFILE_FRAGMENT],
+);
 
 export default function SignIn() {
   const {
@@ -70,12 +72,14 @@ export default function SignIn() {
 
   const onSubmit = async (data: LoginFormData) => {
     const result = await login({
-      // TODO: move conference code to config
-      variables: { ...data, conferenceCode: 'pycon2025' },
+      variables: { ...data },
     });
 
     if (result.data?.login.__typename === 'LoginSuccess') {
-      signIn(result.data.login.user);
+      const user = readFragment(USER_PROFILE_FRAGMENT, result.data.login.user);
+
+      signIn(user);
+
       router.push('/(app)/(tabs)');
     } else if (result.data?.login.__typename === 'LoginErrors') {
       if (result.data.login.errors.email) {
