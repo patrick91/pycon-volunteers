@@ -1,109 +1,317 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import { clsx } from 'clsx';
+import { View, Text, ScrollView } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { graphql, readFragment, type ResultOf } from '@/graphql';
+import { useSuspenseQuery } from '@apollo/client';
 
-export default function TabTwoScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+const ITEM_FRAGMENT = graphql(`
+  fragment Item on ScheduleItem {
+    id
+    duration
+    start
+    end
+    title
+    rooms {
+      id
+    }
+  }
+`);
+
+const SCHEDULE_QUERY = graphql(
+  `
+query Schedule {
+  conference(code: "pycon2024") {
+    days {
+      rooms {
+        id
+        name
+        type
+      }
+      id
+      day
+      slots {
+        hour
+        duration
+        items {
+          ...Item
+        }
+      }
+    }
+    }
+  }
+`,
+  [ITEM_FRAGMENT],
+);
+
+type Item = ResultOf<typeof ITEM_FRAGMENT>;
+type ItemWithDuration = Omit<Item, 'duration'> & { duration: number };
+
+type Slot =
+  | {
+      type: 'break';
+      start: string;
+      title: string;
+    }
+  | {
+      type: 'room-change';
+      start: string;
+    }
+  | {
+      type: 'sessions';
+      start: string;
+      duration: number;
+      sessions: Array<ItemWithDuration>;
+    };
+
+type ScheduleSession = {
+  id: string;
+  width: number;
+  left: number;
+  session: Item;
+};
+
+const getSlotSize = (slot: Slot) => {
+  switch (slot.type) {
+    case 'break':
+      return 150;
+    case 'room-change':
+      return 10;
+    case 'sessions':
+      return 200;
+  }
+};
+
+const hourFromDatetime = (
+  datetime: string,
+): `${number}:${number}:${number}` => {
+  const date = new Date(datetime);
+
+  const [hours, minutes, seconds] = [
+    date.getHours(),
+    date.getMinutes(),
+    date.getSeconds(),
+  ];
+
+  return [hours, minutes, seconds]
+    .map((part) => part.toString().padStart(2, '0'))
+    .join(':') as `${number}:${number}:${number}`;
+};
+
+function getDailySchedule(data: ResultOf<typeof SCHEDULE_QUERY>, day: number) {
+  const { slots, rooms: dayRooms } = data.conference.days[day];
+
+  const daySlots: { [key: string]: Slot } = {};
+
+  const dayItems: Array<ItemWithDuration> = [];
+
+  for (const slot of slots) {
+    const items = readFragment(ITEM_FRAGMENT, slot.items).map((item) => ({
+      ...item,
+      duration:
+        item.duration ??
+        (new Date(item.end).getTime() - new Date(item.start).getTime()) / 60000,
+    }));
+
+    dayItems.push(...items);
+
+    if (slot.items.length === 1) {
+      if (items[0].title.toLowerCase().includes('room change')) {
+        daySlots[slot.hour] = {
+          type: 'room-change',
+          start: slot.hour,
+        };
+      } else {
+        daySlots[slot.hour] = {
+          type: 'break',
+          start: slot.hour,
+          title: items[0].title,
+        };
+      }
+    } else {
+      const existingSlot = daySlots[slot.hour];
+
+      if (existingSlot && existingSlot.type !== 'sessions') {
+        throw new Error('Slot is not a session');
+      }
+
+      const existingSessions = existingSlot?.sessions ?? [];
+
+      const sessions = [...existingSessions, ...items];
+
+      daySlots[slot.hour] = {
+        type: 'sessions',
+        start: slot.hour,
+        duration: slot.duration,
+        sessions,
+      };
+    }
+  }
+
+  const getLeft = (item: Item) => {
+    let left = 0;
+
+    const itemStartHour = hourFromDatetime(item.start);
+
+    for (const slot of Object.values(daySlots)) {
+      if (slot.start === itemStartHour) {
+        break;
+      }
+
+      left += getSlotSize(slot);
+    }
+
+    return left;
+  };
+
+  const getWidth = (item: ItemWithDuration, slot: Slot) => {
+    if (slot.type === 'sessions') {
+      const pixelsPerMinute = getSlotSize(slot) / slot.duration;
+
+      return item.duration * pixelsPerMinute;
+    }
+
+    return getSlotSize(slot);
+  };
+
+  let scheduleSize = 0;
+
+  const sessionsByRoom = dayItems.reduce(
+    (acc, item) => {
+      const slot = daySlots[hourFromDatetime(item.start)];
+
+      if (!slot) {
+        throw new Error('Slot not found');
+      }
+
+      const width = getWidth(item, slot);
+      const left = getLeft(item);
+
+      scheduleSize = Math.max(scheduleSize, left + width);
+
+      const scheduleSession = {
+        id: item.id,
+        session: item,
+        width,
+        left,
+      };
+
+      for (const room of item.rooms) {
+        if (!acc[room.id]) {
+          acc[room.id] = [];
+        }
+        acc[room.id].push(scheduleSession);
+      }
+
+      return acc;
+    },
+    {} as Record<string, Array<ScheduleSession>>,
   );
+
+  const rooms = dayRooms.flatMap((room) => {
+    return [room.name, sessionsByRoom[room.id]];
+  });
+
+  const roomTitleIndices = rooms
+    .map((item, index) => {
+      if (typeof item === 'string') {
+        return index;
+      }
+      return null;
+    })
+    .filter((item) => item !== null) as number[];
+
+  return { rooms, roomTitleIndices, scheduleSize };
 }
 
-const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-});
+export default function ContactsFlashList() {
+  const { data } = useSuspenseQuery(SCHEDULE_QUERY);
+
+  const schedule = getDailySchedule(data, 1);
+
+  return (
+    <ScrollView horizontal className="flex-1 bg-red-200 pb-24">
+      <View
+        className="flex-1 bg-blue-200"
+        style={{ width: schedule.scheduleSize }}
+      >
+        <FlashList
+          className={clsx('flex-1 bg-[#FAF5F3]')}
+          data={schedule.rooms}
+          renderItem={({ item, target, index }) => {
+            if (typeof item === 'string') {
+              return (
+                <Text
+                  className={clsx(
+                    'font-sans-semibold bg-white border-b-4 p-4',
+                    {
+                      'border-t-4': target === 'StickyHeader' || index === 0,
+                    },
+                  )}
+                >
+                  {item}
+                </Text>
+              );
+            }
+
+            return (
+              <View className="flex-row h-36 border-b-4 relative">
+                {item.map(({ session, width, left }, index) => {
+                  const start = new Date(session.start);
+                  const formattedStart = start.toLocaleTimeString('en-GB', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+                  const end = new Date(session.end);
+                  const formattedEnd = end.toLocaleTimeString('en-GB', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+
+                  const isRoomChange = session.title
+                    .toLowerCase()
+                    .includes('room change');
+
+                  return (
+                    <View
+                      className={clsx('border-l-4 h-full', {
+                        'p-4 bg-[#FCE8DE]': !isRoomChange,
+                      })}
+                      key={session.id}
+                      style={{
+                        width,
+                        left,
+                        position: 'absolute',
+                        transform: [{ translateX: -4 }],
+                      }}
+                    >
+                      {isRoomChange ? null : (
+                        <View>
+                          <Text
+                            className="font-sans-semibold"
+                            numberOfLines={2}
+                          >
+                            {session.title}
+                          </Text>
+                          <Text className="font-sans">
+                            {formattedStart} - {formattedEnd}
+                          </Text>
+                        </View>
+                      )}
+                      <View className="w-1 bg-black absolute -right-1 top-0 bottom-0" />
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          }}
+          // stickyHeaderIndices={schedule.roomTitleIndices}
+          getItemType={(item) => {
+            return typeof item === 'string' ? 'sectionHeader' : 'row';
+          }}
+          estimatedItemSize={100}
+        />
+      </View>
+    </ScrollView>
+  );
+}
