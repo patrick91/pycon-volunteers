@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "it.pycon.volunteers",
+      "bundleIdentifier": "it.pycon.conference",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "it.pycon.volunteers"
+      "package": "it.pycon.conference"
     },
     "web": {
       "bundler": "metro",
@@ -47,7 +47,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "14ce300f-2218-4496-93bf-e0ac746f4b87"
+        "projectId": "41750415-3711-4023-9e9c-6b7a56dee328"
       }
     }
   }

@@ -4,6 +4,7 @@ import { FlashList } from '@shopify/flash-list';
 
 import { graphql, readFragment, type ResultOf } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
+import { Link } from 'expo-router';
 
 const ITEM_FRAGMENT = graphql(`
   fragment Item on ScheduleItem {
@@ -273,11 +274,14 @@ export default function ContactsFlashList() {
                     .includes('room change');
 
                   return (
-                    <View
-                      className={clsx('border-l-4 h-full', {
-                        'p-4 bg-[#FCE8DE]': !isRoomChange,
-                      })}
+                    <Link
+                      href={`/schedule/${session.id}`}
                       key={session.id}
+                    >
+                      <View
+                        className={clsx('border-l-4 h-full', {
+                          'p-4 bg-[#FCE8DE]': !isRoomChange,
+                      })}
                       style={{
                         width,
                         left,
@@ -299,7 +303,8 @@ export default function ContactsFlashList() {
                         </View>
                       )}
                       <View className="w-1 bg-black absolute -right-1 top-0 bottom-0" />
-                    </View>
+                      </View>
+                    </Link>
                   );
                 })}
               </View>
