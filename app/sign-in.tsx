@@ -20,7 +20,7 @@ import { Logo } from '@/components/logo';
 import { useMutation } from '@apollo/client';
 import { useRouter } from 'expo-router';
 import { useSession } from '@/context/auth';
-import { USER_PROFILE_FRAGMENT } from './(app)/(tabs)/profile';
+import { USER_PROFILE_FRAGMENT } from './(auth)/(tabs)/profile';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -80,7 +80,7 @@ export default function SignIn() {
 
       signIn(user);
 
-      router.push('/(app)/(tabs)');
+      router.push('/(auth)/(tabs)');
     } else if (result.data?.login.__typename === 'LoginErrors') {
       if (result.data.login.errors.email) {
         setError('email', {

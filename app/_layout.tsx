@@ -87,7 +87,7 @@ export default function RootLayout() {
             value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
           >
             <Stack>
-              <Stack.Screen name="(app)" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen name="sign-in" options={{ headerShown: false }} />
               <Stack.Screen name="+not-found" />
             </Stack>
