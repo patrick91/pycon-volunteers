@@ -21,6 +21,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import { onError } from '@apollo/client/link/error';
 import '../global.css';
+import { NowContext, NowProvider } from '@/components/timer/context';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -78,9 +79,10 @@ export default function RootLayout() {
   }
 
   return (
-    <KeyboardProvider>
-      <APIProvider>
-        <SessionProvider>
+    <NowProvider>
+      <KeyboardProvider>
+        <APIProvider>
+          <SessionProvider>
           <ThemeProvider
             value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
           >
@@ -91,8 +93,9 @@ export default function RootLayout() {
             </Stack>
             <StatusBar style="auto" />
           </ThemeProvider>
-        </SessionProvider>
-      </APIProvider>
-    </KeyboardProvider>
+          </SessionProvider>
+        </APIProvider>
+      </KeyboardProvider>
+    </NowProvider>
   );
 }

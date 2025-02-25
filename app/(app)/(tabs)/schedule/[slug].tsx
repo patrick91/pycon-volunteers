@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import Markdown from 'react-native-markdown-display';
+import { Timer } from '@/components/timer';
 
 const TALK_QUERY = graphql(
   `query Talk($slug: String!, $code: String!, $language: String!) {
@@ -124,7 +125,11 @@ export default function SessionPage() {
   return (
     <ScrollView className="flex-1 p-4">
       <View className="mb-4">
-        <Text>Timer here</Text>
+        <Timer
+          event={talk}
+          liveEvent={null}
+          onGoToNextTalk={() => {}}
+        />
       </View>
       <View className="mb-4">
         <Text className="text-4xl font-bold">{talk.title}</Text>
