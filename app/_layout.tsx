@@ -4,26 +4,55 @@ import {
   ThemeProvider,
 } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { SessionProvider } from '@/context/auth';
-import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  HttpLink,
+} from '@apollo/client';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
-
+import { onError } from '@apollo/client/link/error';
 import '../global.css';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-const client = new ApolloClient({
-  uri: 'https://2025.pycon.it/graphql',
-  cache: new InMemoryCache(),
-});
+const APIProvider = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
+
+  const errorLink = onError(({ graphQLErrors }) => {
+    if (graphQLErrors) {
+      console.log('graphQLErrors', graphQLErrors);
+      const hasPermissionError = graphQLErrors.some(
+        (error) => error.message === 'User not logged in',
+      );
+
+      if (hasPermissionError) {
+        router.replace('/sign-in');
+      }
+    }
+  });
+
+  const client = new ApolloClient({
+    cache: new InMemoryCache(),
+    link: errorLink.concat(
+      new HttpLink({
+        uri: 'https://2025.pycon.it/graphql',
+        credentials: 'include',
+      }),
+    ),
+  });
+
+  return <ApolloProvider client={client}>{children}</ApolloProvider>;
+};
 
 if (__DEV__) {
   console.log('Loading dev messages');
@@ -50,7 +79,7 @@ export default function RootLayout() {
 
   return (
     <KeyboardProvider>
-      <ApolloProvider client={client}>
+      <APIProvider>
         <SessionProvider>
           <ThemeProvider
             value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
@@ -63,7 +92,7 @@ export default function RootLayout() {
             <StatusBar style="auto" />
           </ThemeProvider>
         </SessionProvider>
-      </ApolloProvider>
+      </APIProvider>
     </KeyboardProvider>
   );
 }
