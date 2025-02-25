@@ -13,6 +13,7 @@ const ITEM_FRAGMENT = graphql(`
     start
     end
     title
+    slug
     rooms {
       id
     }
@@ -22,7 +23,7 @@ const ITEM_FRAGMENT = graphql(`
 const SCHEDULE_QUERY = graphql(
   `
 query Schedule {
-  conference(code: "pycon2024") {
+  conference(code: "pycon2025") {
     days {
       rooms {
         id
@@ -274,35 +275,32 @@ export default function ContactsFlashList() {
                     .includes('room change');
 
                   return (
-                    <Link
-                      href={`/schedule/${session.id}`}
-                      key={session.id}
-                    >
+                    <Link href={`/schedule/${session.slug}`} key={session.id}>
                       <View
                         className={clsx('border-l-4 h-full', {
                           'p-4 bg-[#FCE8DE]': !isRoomChange,
-                      })}
-                      style={{
-                        width,
-                        left,
-                        position: 'absolute',
-                        transform: [{ translateX: -4 }],
-                      }}
-                    >
-                      {isRoomChange ? null : (
-                        <View>
-                          <Text
-                            className="font-sans-semibold"
-                            numberOfLines={2}
-                          >
-                            {session.title}
-                          </Text>
-                          <Text className="font-sans">
-                            {formattedStart} - {formattedEnd}
-                          </Text>
-                        </View>
-                      )}
-                      <View className="w-1 bg-black absolute -right-1 top-0 bottom-0" />
+                        })}
+                        style={{
+                          width,
+                          left,
+                          position: 'absolute',
+                          transform: [{ translateX: -4 }],
+                        }}
+                      >
+                        {isRoomChange ? null : (
+                          <View>
+                            <Text
+                              className="font-sans-semibold"
+                              numberOfLines={2}
+                            >
+                              {session.title}
+                            </Text>
+                            <Text className="font-sans">
+                              {formattedStart} - {formattedEnd}
+                            </Text>
+                          </View>
+                        )}
+                        <View className="w-1 bg-black absolute -right-1 top-0 bottom-0" />
                       </View>
                     </Link>
                   );
