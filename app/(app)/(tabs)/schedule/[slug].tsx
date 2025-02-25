@@ -22,6 +22,7 @@ const TALK_QUERY = graphql(
         image
         highlightColor
         description
+        elevatorPitch
         hasLimitedCapacity
         spacesLeft
         hasSpacesLeft
@@ -153,9 +154,9 @@ export default function SessionPage() {
         ))}
       </View>
 
-      {/* Talk description */}
       <View className="mb-4">
-        <Markdown>{talk.abstract}</Markdown>
+        <Text className="text-2xl">Elevator Pitch</Text>
+        <Markdown>{talk.elevatorPitch}</Markdown>
       </View>
 
       {/* Section buttons */}
