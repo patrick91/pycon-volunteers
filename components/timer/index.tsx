@@ -1,14 +1,14 @@
 import { differenceInHours, format, parse, parseISO } from 'date-fns';
-import { View, Text, TouchableHighlight, TouchableOpacity } from "react-native";
-import React, { useEffect, useLayoutEffect, useState } from "react";
-import { useNow } from "./context";
-import { Countdown } from "./countdown";
-import { getTimer } from "./get-timer";
-import { getDeltaAndStatus } from "./get-delta-and-status";
+import { View, Text, TouchableHighlight, TouchableOpacity } from 'react-native';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
+import { useNow } from './context';
+import { Countdown } from './countdown';
+import { getTimer } from './get-timer';
+import { getDeltaAndStatus } from './get-delta-and-status';
 import * as SecureStore from 'expo-secure-store';
 import { Button } from '@/components/ui/button';
 
-export const Timer = ({
+const InnerTimer = ({
   event,
   liveEvent,
   onGoToNextTalk,
@@ -59,7 +59,7 @@ export const Timer = ({
 
   const [time, setTime] = useState(Date.now());
 
-  const stopTimer =async () => {
+  const stopTimer = async () => {
     await SecureStore.deleteItemAsync(storageKey);
     setUserTimerStart(null);
   };
@@ -109,48 +109,46 @@ export const Timer = ({
 
   return (
     <>
-            <Countdown
-              timer={userTimer || "0:00"}
-              status={userTimerState ? userTimerState.status : "notStarted"}
-              time={time}
-              delta={userTimerState?.delta || 0}
-            />
+      <Countdown
+        timer={userTimer || '0:00'}
+        status={userTimerState ? userTimerState.status : 'notStarted'}
+        time={time}
+        delta={userTimerState?.delta || 0}
+      />
 
-          <View className="mb-2">
-            {isLive ? (
-              <Button
-                onPress={() => {
-                  if (userTimerStart) {
-                    stopTimer();
-                  } else {
-                    startTimer();
-                  }
-                }}
-              >
-                {userTimerStart ? "Stop and reset" : "Start"}
-              </Button>
-            ) : (
-              <TouchableHighlight
-                onPress={() => {
-                  if (userTimerStart) {
-                    stopTimer();
-                  }
+      <View className="mb-2">
+        {isLive ? (
+          <Button
+            onPress={() => {
+              if (userTimerStart) {
+                stopTimer();
+              } else {
+                startTimer();
+              }
+            }}
+          >
+            {userTimerStart ? 'Stop and reset' : 'Start'}
+          </Button>
+        ) : (
+          <TouchableHighlight
+            onPress={() => {
+              if (userTimerStart) {
+                stopTimer();
+              }
 
-                  onGoToNextTalk?.();
-                }}
-              >
-                <View className="p-2 border-2 bg-red-300">
-                  <Text className="uppercase font-bold text-center">
-                    Go to live talk
-                  </Text>
+              onGoToNextTalk?.();
+            }}
+          >
+            <View className="p-2 border-2 bg-red-300">
+              <Text className="uppercase font-bold text-center">
+                Go to live talk
+              </Text>
 
-                  <Text className="text-center text-xs">
-                    ({liveEvent?.title})
-                  </Text>
-                </View>
-              </TouchableHighlight>
-            )}
-          </View>
+              <Text className="text-center text-xs">({liveEvent?.title})</Text>
+            </View>
+          </TouchableHighlight>
+        )}
+      </View>
 
       {inDistantFuture ? (
         <View>
@@ -171,3 +169,49 @@ export const Timer = ({
     </>
   );
 };
+
+export function Timer({
+  event,
+  liveEvent,
+  onGoToNextTalk,
+}: {
+  event: { start: string; end: string; id: string; hasQa: boolean };
+  liveEvent: { id: string; title: string };
+  onGoToNextTalk?: () => void;
+}) {
+  const [debug, setDebug] = useState(false);
+  const [tapCount, setTapCount] = useState(0);
+  const [lastTapTime, setLastTapTime] = useState(0);
+
+  const handleTap = () => {
+    const now = Date.now();
+    // Reset tap count if more than 1 second has passed since last tap
+    if (now - lastTapTime > 1000) {
+      setTapCount(1);
+    } else {
+      setTapCount((prevCount) => prevCount + 1);
+    }
+
+    setLastTapTime(now);
+
+    // Log when user taps 3 times
+    if (tapCount === 2) {
+      setDebug((prev) => !prev);
+      // Reset tap count after logging
+      setTapCount(0);
+    }
+  };
+
+  return (
+    <View>
+      <TouchableOpacity onPress={handleTap} activeOpacity={1}>
+        <InnerTimer
+          event={event}
+          liveEvent={liveEvent}
+          onGoToNextTalk={onGoToNextTalk}
+        />
+      </TouchableOpacity>
+      {debug && <Text>Debug</Text>}
+    </View>
+  );
+}
