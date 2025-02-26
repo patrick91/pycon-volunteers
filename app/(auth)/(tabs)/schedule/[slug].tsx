@@ -7,10 +7,27 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Modal,
+  Dimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import Markdown from 'react-native-markdown-display';
 import { Timer } from '@/components/timer';
+import { useState } from 'react';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+  interpolate,
+  Extrapolate,
+} from 'react-native-reanimated';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
+import { SpeakerImage } from '@/components/speaker-image';
 
 const TALK_QUERY = graphql(
   `query Talk($slug: String!, $code: String!, $language: String!) {
@@ -127,7 +144,7 @@ export default function SessionPage() {
       <View className="mb-4">
         <Timer
           event={talk}
-          liveEvent={null}
+          liveEvent={{ id: 'dummy-id' }}
           onGoToNextTalk={() => {}}
         />
       </View>
@@ -139,10 +156,7 @@ export default function SessionPage() {
         {talk.speakers.map((speaker) => (
           <View key={speaker.id} className="flex-row items-center gap-2">
             {speaker?.participant?.photo ? (
-              <Image
-                source={{ uri: speaker?.participant?.photo }}
-                style={{ width: 40, height: 40, borderRadius: 20 }}
-              />
+              <SpeakerImage imageUri={speaker.participant?.photo} />
             ) : (
               <View
                 style={{
@@ -173,6 +187,8 @@ export default function SessionPage() {
     </ScrollView>
   );
 }
+
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
