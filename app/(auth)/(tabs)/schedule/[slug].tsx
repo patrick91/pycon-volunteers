@@ -118,8 +118,8 @@ const TALK_QUERY = graphql(
 
 const SectionButton = ({ title }: { title: string }) => {
   return (
-    <TouchableOpacity style={styles.sectionButton}>
-      <Text style={styles.sectionButtonText}>{title}</Text>
+    <TouchableOpacity className="bg-orange-800 p-4 rounded-md">
+      <Text className="text-white text-lg font-bold">{title}</Text>
     </TouchableOpacity>
   );
 };
@@ -179,7 +179,7 @@ export default function SessionPage() {
       </View>
 
       {/* Section buttons */}
-      <View style={styles.sectionButtonsContainer}>
+      <View className="flex-row gap-2">
         <SectionButton title="ABSTRACT" />
         <SectionButton title="CHECKLIST" />
         <SectionButton title="NOTES" />
@@ -187,86 +187,3 @@ export default function SessionPage() {
     </ScrollView>
   );
 }
-
-const { width, height } = Dimensions.get('window');
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 20,
-    marginTop: 10,
-  },
-  tag: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  tagText: {
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  titleContainer: {
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    lineHeight: 44,
-    color: '#000',
-  },
-  speakerContainer: {
-    backgroundColor: '#f8f0e3',
-    padding: 20,
-    borderRadius: 0,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#000',
-  },
-  speakerLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    color: '#000',
-  },
-  speakerName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  descriptionContainer: {
-    marginBottom: 30,
-  },
-  description: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#000',
-  },
-  sectionButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 24,
-    gap: 10,
-  },
-  sectionButton: {
-    backgroundColor: '#f0c674',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 0,
-    borderWidth: 1,
-    borderColor: '#000',
-    flex: 1,
-    alignItems: 'center',
-  },
-  sectionButtonText: {
-    fontWeight: 'bold',
-    color: '#000',
-  },
-});
