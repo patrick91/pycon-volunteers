@@ -4,21 +4,12 @@ import { FlashList } from '@shopify/flash-list';
 
 import { graphql, readFragment, type ResultOf } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
-import { Link } from 'expo-router';
 
-const ITEM_FRAGMENT = graphql(`
-  fragment Item on ScheduleItem {
-    id
-    duration
-    start
-    end
-    title
-    slug
-    rooms {
-      id
-    }
-  }
-`);
+import {
+  SessionItem,
+  ITEM_FRAGMENT,
+  type Item,
+} from '@/components/session-item';
 
 const SCHEDULE_QUERY = graphql(
   `
@@ -46,7 +37,6 @@ query Schedule {
   [ITEM_FRAGMENT],
 );
 
-type Item = ResultOf<typeof ITEM_FRAGMENT>;
 type ItemWithDuration = Omit<Item, 'duration'> & { duration: number };
 
 type Slot =
@@ -80,7 +70,7 @@ const getSlotSize = (slot: Slot) => {
     case 'room-change':
       return 10;
     case 'sessions':
-      return 200;
+      return 250;
   }
 };
 
@@ -108,28 +98,38 @@ function getDailySchedule(data: ResultOf<typeof SCHEDULE_QUERY>, day: number) {
   const dayItems: Array<ItemWithDuration> = [];
 
   for (const slot of slots) {
-    const items = readFragment(ITEM_FRAGMENT, slot.items).map((item) => ({
-      ...item,
-      duration:
-        item.duration ??
-        (new Date(item.end).getTime() - new Date(item.start).getTime()) / 60000,
-    }));
+    const items = readFragment(ITEM_FRAGMENT, slot.items)
+      .map((item) => ({
+        ...item,
+        duration:
+          item.duration ??
+          (new Date(item.end).getTime() - new Date(item.start).getTime()) /
+            60000,
+      }))
+      .filter((item) => item.type !== 'training');
 
     dayItems.push(...items);
 
-    if (slot.items.length === 1) {
-      if (items[0].title.toLowerCase().includes('room change')) {
-        daySlots[slot.hour] = {
-          type: 'room-change',
-          start: slot.hour,
-        };
-      } else {
-        daySlots[slot.hour] = {
-          type: 'break',
-          start: slot.hour,
-          title: items[0].title,
-        };
-      }
+    const hasRoomChange = items.some((item) =>
+      item.title.toLowerCase().includes('room change'),
+    );
+    const hasCoffeeOrLunch = items.some(
+      (item) =>
+        item.title.toLowerCase().includes('coffee') ||
+        item.title.toLowerCase().includes('lunch'),
+    );
+
+    if (hasCoffeeOrLunch) {
+      daySlots[slot.hour] = {
+        type: 'break',
+        start: slot.hour,
+        title: items[0].title,
+      };
+    } else if (hasRoomChange) {
+      daySlots[slot.hour] = {
+        type: 'room-change',
+        start: slot.hour,
+      };
     } else {
       const existingSlot = daySlots[slot.hour];
 
@@ -258,53 +258,14 @@ export default function ContactsFlashList() {
 
             return (
               <View className="flex-row h-36 border-b-4 relative">
-                {item.map(({ session, width, left }, index) => {
-                  const start = new Date(session.start);
-                  const formattedStart = start.toLocaleTimeString('en-GB', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  });
-                  const end = new Date(session.end);
-                  const formattedEnd = end.toLocaleTimeString('en-GB', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  });
-
-                  const isRoomChange = session.title
-                    .toLowerCase()
-                    .includes('room change');
-
-                  return (
-                    <Link href={`/schedule/${session.slug}`} key={session.id}>
-                      <View
-                        className={clsx('border-l-4 h-full', {
-                          'p-4 bg-[#FCE8DE]': !isRoomChange,
-                        })}
-                        style={{
-                          width,
-                          left,
-                          position: 'absolute',
-                          transform: [{ translateX: -4 }],
-                        }}
-                      >
-                        {isRoomChange ? null : (
-                          <View>
-                            <Text
-                              className="font-sans-semibold"
-                              numberOfLines={2}
-                            >
-                              {session.title}
-                            </Text>
-                            <Text className="font-sans">
-                              {formattedStart} - {formattedEnd}
-                            </Text>
-                          </View>
-                        )}
-                        <View className="w-1 bg-black absolute -right-1 top-0 bottom-0" />
-                      </View>
-                    </Link>
-                  );
-                })}
+                {item.map(({ session, width, left }, index) => (
+                  <SessionItem
+                    key={session.id}
+                    session={session}
+                    width={width}
+                    left={left}
+                  />
+                ))}
               </View>
             );
           }}
