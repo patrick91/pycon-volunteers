@@ -258,7 +258,7 @@ export default function ContactsFlashList() {
 
             return (
               <View className="flex-row h-36 border-b-4 relative">
-                {item.map(({ session, width, left }, index) => (
+                {item.map(({ session, width, left }) => (
                   <SessionItem
                     key={session.id}
                     session={session}

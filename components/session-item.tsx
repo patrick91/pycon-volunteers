@@ -47,26 +47,28 @@ export function SessionItem({ session, width, left }: SessionItemProps) {
   });
 
   const isRoomChange = session.title.toLowerCase().includes('room change');
+  const borderWidth = isRoomChange ? 0 : 4;
 
   return (
     <Link
       href={`/schedule/${session.slug}`}
       style={{
-        width,
-        left,
+        width: width + 4,
+        left: left - 4,
+        height: '100%',
+        borderLeftWidth: borderWidth,
+        borderRightWidth: borderWidth,
+        marginRight: -4,
+        borderColor: 'black',
         position: 'absolute',
-        transform: [{ translateX: -4 }],
+        backgroundColor: '#fce8de',
+        // transform: [{ translateX: -4 }],
       }}
     >
       <View
-        className={clsx('border-l-4 h-full', {
-          'p-4 bg-[#FCE8DE]': !isRoomChange,
+        className={clsx('h-full w-full', {
+          'p-4': !isRoomChange,
         })}
-        style={{
-          width,
-          position: 'absolute',
-          transform: [{ translateX: -4 }],
-        }}
       >
         {isRoomChange ? null : (
           <View className="flex-1">
@@ -107,7 +109,6 @@ export function SessionItem({ session, width, left }: SessionItemProps) {
             </View>
           </View>
         )}
-        <View className="w-1 bg-black absolute -right-1 top-0 bottom-0" />
       </View>
     </Link>
   );
