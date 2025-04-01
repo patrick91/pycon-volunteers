@@ -98,15 +98,12 @@ function getDailySchedule(data: ResultOf<typeof SCHEDULE_QUERY>, day: number) {
   const dayItems: Array<ItemWithDuration> = [];
 
   for (const slot of slots) {
-    const items = readFragment(ITEM_FRAGMENT, slot.items)
-      .map((item) => ({
-        ...item,
-        duration:
-          item.duration ??
-          (new Date(item.end).getTime() - new Date(item.start).getTime()) /
-            60000,
-      }))
-      .filter((item) => item.type !== 'training');
+    const items = readFragment(ITEM_FRAGMENT, slot.items).map((item) => ({
+      ...item,
+      duration:
+        item.duration ??
+        (new Date(item.end).getTime() - new Date(item.start).getTime()) / 60000,
+    }));
 
     dayItems.push(...items);
 

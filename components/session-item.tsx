@@ -76,8 +76,7 @@ export function SessionItem({ session, width, left }: SessionItemProps) {
               {session.title}
             </Text>
             <Text className="font-sans">
-              {session.type}
-              {left} - {formattedStart} - {formattedEnd}
+              {formattedStart} - {formattedEnd}
             </Text>
 
             <View className="flex-row gap-2 mt-auto">
