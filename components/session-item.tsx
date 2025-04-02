@@ -62,7 +62,6 @@ export function SessionItem({ session, width, left }: SessionItemProps) {
         borderColor: 'black',
         position: 'absolute',
         backgroundColor: '#fce8de',
-        // transform: [{ translateX: -4 }],
       }}
     >
       <View
