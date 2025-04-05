@@ -171,6 +171,7 @@ export default function SessionPage() {
 
       <View className="px-4 mt-4">
         <Text className="text-2xl font-bold">Next talk</Text>
+        <Text>{talk.rooms[0].name}</Text>
       </View>
     </ScrollView>
   );
