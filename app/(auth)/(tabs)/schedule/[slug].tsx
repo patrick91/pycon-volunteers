@@ -1,4 +1,4 @@
-import { graphql } from '@/graphql';
+import { FragmentOf, graphql, readFragment } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
 import { useLocalSearchParams } from 'expo-router';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
@@ -6,6 +6,60 @@ import Markdown from 'react-native-markdown-display';
 import { Timer } from '@/components/timer';
 
 import { SpeakerImage } from '@/components/speaker-image';
+
+const SPEAKERS_FRAGMENT = graphql(
+  `fragment SpeakersFragment on ScheduleItem {
+      speakers {
+          id
+          fullName
+          participant {
+            id
+            photo
+            bio
+            twitterHandle
+            instagramHandle
+            linkedinUrl
+            facebookUrl
+            mastodonHandle
+            website
+          }
+    }
+  }
+  `,
+);
+
+function SpeakersView({
+  data,
+}: { data: FragmentOf<typeof SPEAKERS_FRAGMENT> }) {
+  const { speakers } = readFragment(SPEAKERS_FRAGMENT, data);
+
+  return (
+    <>
+      {speakers.map((speaker) => (
+        <View key={speaker.id} className="flex-row gap-2 pr-4 border-b-2">
+          <View className="border-r-2">
+            {speaker?.participant?.photo ? (
+              <SpeakerImage imageUri={speaker.participant?.photo} size={80} />
+            ) : (
+              <View
+                style={{
+                  width: 80,
+                  height: 80,
+                  backgroundColor: '#f0c674',
+                }}
+              />
+            )}
+          </View>
+
+          <View className="flex-1 py-2">
+            <Text className="text-xl font-bold">{speaker.fullName}</Text>
+            <Text numberOfLines={2}>{speaker.participant?.bio}</Text>
+          </View>
+        </View>
+      ))}
+    </>
+  );
+}
 
 const TALK_QUERY = graphql(
   `query Talk($slug: String!, $code: String!, $language: String!) {
@@ -73,25 +127,12 @@ const TALK_QUERY = graphql(
           }
         }
   
-        speakers {
-          id
-          fullName
-          participant {
-            id
-            photo
-            bio
-            twitterHandle
-            instagramHandle
-            linkedinUrl
-            facebookUrl
-            mastodonHandle
-            website
-          }
-        }
+        ...SpeakersFragment
       }
     }
   }
   `,
+  [SPEAKERS_FRAGMENT],
 );
 
 const SectionButton = ({ title }: { title: string }) => {
@@ -135,28 +176,7 @@ export default function SessionPage() {
         <Text className="text-4xl font-bold">{talk.title}</Text>
       </View>
 
-      {talk.speakers.map((speaker) => (
-        <View key={speaker.id} className="flex-row gap-2 pr-4 border-b-2">
-          <View className="border-r-2">
-            {speaker?.participant?.photo ? (
-              <SpeakerImage imageUri={speaker.participant?.photo} size={80} />
-            ) : (
-              <View
-                style={{
-                  width: 80,
-                  height: 80,
-                  backgroundColor: '#f0c674',
-                }}
-              />
-            )}
-          </View>
-
-          <View className="flex-1 py-2">
-            <Text className="text-xl font-bold">{speaker.fullName}</Text>
-            <Text numberOfLines={2}>{speaker.participant?.bio}</Text>
-          </View>
-        </View>
-      ))}
+      <SpeakersView data={talk} />
 
       <View className="mb-4 px-4 mt-4">
         <Text className="text-2xl font-bold">Elevator Pitch</Text>
