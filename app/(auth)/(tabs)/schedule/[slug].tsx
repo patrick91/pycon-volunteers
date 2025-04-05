@@ -1,6 +1,6 @@
 import { type FragmentOf, graphql, readFragment } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
-import { useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { Timer } from '@/components/timer';
@@ -187,9 +187,11 @@ function UpNextView({
   return (
     <View className="px-4 mt-4 border-t-2 pt-4 gap-2">
       <Text className="text-2xl font-bold">Up next:</Text>
-      <View className="border-2 border-black p-3 min-h-[110px] bg-[#FCE8DE]">
-        <SessionItem session={nextSession.session} />
-      </View>
+      <Link href={`/schedule/${nextSession.session.slug}`}>
+        <View className="border-2 border-black p-3 min-h-[110px] bg-[#FCE8DE] w-full">
+          <SessionItem session={nextSession.session} />
+        </View>
+      </Link>
     </View>
   );
 }
