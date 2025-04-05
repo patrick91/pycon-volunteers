@@ -7,6 +7,10 @@ import { SessionItem } from '@/components/session-item';
 export default function ContactsFlashList() {
   const { schedule } = useSchedule(1);
 
+  const listOfRoomsAndSessions = schedule.rooms.flatMap((room) => {
+    return [room.name, room.sessions];
+  });
+
   return (
     <ScrollView horizontal className="flex-1 bg-red-200 pb-24">
       <View
@@ -15,7 +19,7 @@ export default function ContactsFlashList() {
       >
         <FlashList
           className={clsx('flex-1 bg-[#FAF5F3]')}
-          data={schedule.rooms}
+          data={listOfRoomsAndSessions}
           renderItem={({ item, target, index }) => {
             if (typeof item === 'string') {
               return (

@@ -1,4 +1,4 @@
-import { FragmentOf, graphql, readFragment } from '@/graphql';
+import { type FragmentOf, graphql, readFragment } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
 import { useLocalSearchParams } from 'expo-router';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
@@ -6,6 +6,8 @@ import Markdown from 'react-native-markdown-display';
 import { Timer } from '@/components/timer';
 
 import { SpeakerImage } from '@/components/speaker-image';
+import { useSchedule } from '@/hooks/use-schedule';
+import { parseISO, isAfter, isEqual } from 'date-fns';
 
 const SPEAKERS_FRAGMENT = graphql(
   `fragment SpeakersFragment on ScheduleItem {
@@ -143,6 +145,52 @@ const SectionButton = ({ title }: { title: string }) => {
   );
 };
 
+function NextSessionView({
+  current,
+}: {
+  current: {
+    start: string;
+    end: string;
+    rooms: {
+      name: string;
+    }[];
+  };
+}) {
+  // TODO: get the day from the session
+  const { schedule } = useSchedule(1);
+
+  const currentRoom = current.rooms[0].name;
+
+  const room = schedule.rooms.find(
+    (room) => !(room instanceof String) && room.name === currentRoom,
+  );
+
+  const currentEnd = parseISO(current.end);
+
+  const nextSession = room?.sessions.find(({ session }) => {
+    if (session.title.toLowerCase().includes('room change')) {
+      return false;
+    }
+
+    const sessionStart = parseISO(session.start);
+
+    return (
+      isAfter(sessionStart, currentEnd) || isEqual(sessionStart, currentEnd)
+    );
+  });
+
+  if (!nextSession) {
+    return null;
+  }
+
+  return (
+    <View className="px-4 mt-4">
+      <Text className="text-2xl font-bold">Up next:</Text>
+      <Text>{nextSession?.session.title}</Text>
+    </View>
+  );
+}
+
 export default function SessionPage() {
   const slug = useLocalSearchParams().slug as string;
   const code = 'pycon2025';
@@ -189,10 +237,7 @@ export default function SessionPage() {
         <SectionButton title="Notes" />
       </View>
 
-      <View className="px-4 mt-4">
-        <Text className="text-2xl font-bold">Next talk</Text>
-        <Text>{talk.rooms[0].name}</Text>
-      </View>
+      <NextSessionView current={talk} />
     </ScrollView>
   );
 }

@@ -200,7 +200,7 @@ function getDailySchedule(data: ResultOf<typeof SCHEDULE_QUERY>, day: number) {
   );
 
   const rooms = dayRooms.flatMap((room) => {
-    return [room.name, sessionsByRoom[room.id]];
+    return { name: room.name, sessions: sessionsByRoom[room.id] };
   });
 
   const roomTitleIndices = rooms
