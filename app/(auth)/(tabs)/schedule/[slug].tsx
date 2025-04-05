@@ -8,6 +8,7 @@ import { Timer } from '@/components/timer';
 import { SpeakerImage } from '@/components/speaker-image';
 import { useSchedule } from '@/hooks/use-schedule';
 import { parseISO, isAfter, isEqual } from 'date-fns';
+import { SessionItem } from '@/components/session-item';
 
 const SPEAKERS_FRAGMENT = graphql(
   `fragment SpeakersFragment on ScheduleItem {
@@ -145,7 +146,7 @@ const SectionButton = ({ title }: { title: string }) => {
   );
 };
 
-function NextSessionView({
+function UpNextView({
   current,
 }: {
   current: {
@@ -184,9 +185,11 @@ function NextSessionView({
   }
 
   return (
-    <View className="px-4 mt-4">
+    <View className="px-4 mt-4 border-t-2 pt-4 gap-2">
       <Text className="text-2xl font-bold">Up next:</Text>
-      <Text>{nextSession?.session.title}</Text>
+      <View className="border-2 border-black p-3 min-h-[110px] bg-[#FCE8DE]">
+        <SessionItem session={nextSession.session} />
+      </View>
     </View>
   );
 }
@@ -237,7 +240,7 @@ export default function SessionPage() {
         <SectionButton title="Notes" />
       </View>
 
-      <NextSessionView current={talk} />
+      <UpNextView current={talk} />
     </ScrollView>
   );
 }

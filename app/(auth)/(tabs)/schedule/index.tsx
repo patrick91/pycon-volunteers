@@ -3,6 +3,7 @@ import { View, Text, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useSchedule } from '@/hooks/use-schedule';
 import { SessionItem } from '@/components/session-item';
+import { Link } from 'expo-router';
 
 export default function ContactsFlashList() {
   const { schedule } = useSchedule(1);
@@ -38,14 +39,40 @@ export default function ContactsFlashList() {
 
             return (
               <View className="flex-row h-36 border-b-2 relative">
-                {item.map(({ session, width, left }) => (
-                  <SessionItem
-                    key={session.id}
-                    session={session}
-                    width={width}
-                    left={left}
-                  />
-                ))}
+                {item.map(({ session, width, left }) => {
+                  const isRoomChange = session.title
+                    .toLowerCase()
+                    .includes('room change');
+                  const borderWidth = isRoomChange ? 0 : 2;
+
+                  return (
+                    <Link
+                      href={`/schedule/${session.slug}`}
+                      key={session.id}
+                      style={{
+                        width: width + 4,
+                        left: left - 4,
+                        height: '100%',
+                        borderLeftWidth: borderWidth,
+                        borderRightWidth: borderWidth,
+                        marginRight: -4,
+                        borderColor: 'black',
+                        position: 'absolute',
+                        backgroundColor: '#fce8de',
+                      }}
+                    >
+                      <View
+                        className={clsx('h-full w-full', {
+                          'p-4': !isRoomChange,
+                        })}
+                      >
+                        {isRoomChange ? null : (
+                          <SessionItem session={session} />
+                        )}
+                      </View>
+                    </Link>
+                  );
+                })}
               </View>
             );
           }}
