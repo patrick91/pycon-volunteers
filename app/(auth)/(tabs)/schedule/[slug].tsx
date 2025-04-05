@@ -1,32 +1,10 @@
 import { graphql } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
 import { useLocalSearchParams } from 'expo-router';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
-  Dimensions,
-} from 'react-native';
-import { Image } from 'expo-image';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { Timer } from '@/components/timer';
-import { useState } from 'react';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  runOnJS,
-  interpolate,
-  Extrapolate,
-} from 'react-native-reanimated';
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
+
 import { SpeakerImage } from '@/components/speaker-image';
 
 const TALK_QUERY = graphql(
@@ -118,8 +96,8 @@ const TALK_QUERY = graphql(
 
 const SectionButton = ({ title }: { title: string }) => {
   return (
-    <TouchableOpacity className="bg-orange-800 p-4 rounded-md">
-      <Text className="text-white text-lg font-bold">{title}</Text>
+    <TouchableOpacity className="bg-[#FCE8DE] p-4 border-2 border-black">
+      <Text className="text-black text-lg font-bold">{title}</Text>
     </TouchableOpacity>
   );
 };
@@ -140,7 +118,11 @@ export default function SessionPage() {
   const talk = data.conference.talk;
 
   return (
-    <ScrollView className="flex-1">
+    <ScrollView
+      className="flex-1"
+      // TODO: figure out how to get these programmatically
+      contentContainerStyle={{ paddingBottom: 100 }}
+    >
       <View className="mb-4 border-b-2">
         <Timer
           event={talk}
@@ -181,11 +163,14 @@ export default function SessionPage() {
         <Markdown>{talk.elevatorPitch}</Markdown>
       </View>
 
-      {/* Section buttons */}
-      <View className="flex-row gap-2">
-        <SectionButton title="ABSTRACT" />
-        <SectionButton title="CHECKLIST" />
-        <SectionButton title="NOTES" />
+      <View className="flex-row gap-2 px-4 flex-1">
+        <SectionButton title="Abstract" />
+        <SectionButton title="Checklist" />
+        <SectionButton title="Notes" />
+      </View>
+
+      <View className="px-4 mt-4">
+        <Text className="text-2xl font-bold">Next talk</Text>
       </View>
     </ScrollView>
   );
