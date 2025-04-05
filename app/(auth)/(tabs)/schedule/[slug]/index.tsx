@@ -1,16 +1,16 @@
 import { type FragmentOf, graphql, readFragment } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
-import { Link, useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams, Stack } from 'expo-router';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { Timer } from '@/components/timer';
 
-import { SpeakerImage } from '@/components/speaker-image';
 import { useSchedule } from '@/hooks/use-schedule';
 import { parseISO, isAfter, isEqual } from 'date-fns';
 import { SessionItem } from '@/components/session-item';
+import { Image } from 'expo-image';
 
-const SPEAKERS_FRAGMENT = graphql(
+export const SPEAKERS_FRAGMENT = graphql(
   `fragment SpeakersFragment on ScheduleItem {
       speakers {
           id
@@ -39,26 +39,35 @@ function SpeakersView({
   return (
     <>
       {speakers.map((speaker) => (
-        <View key={speaker.id} className="flex-row gap-2 pr-4 border-b-2">
-          <View className="border-r-2">
-            {speaker?.participant?.photo ? (
-              <SpeakerImage imageUri={speaker.participant?.photo} size={80} />
-            ) : (
-              <View
-                style={{
-                  width: 80,
-                  height: 80,
-                  backgroundColor: '#f0c674',
-                }}
-              />
-            )}
-          </View>
+        <Link
+          href={`./speaker/${speaker.id}`}
+          key={speaker.id}
+          relativeToDirectory
+        >
+          <View className="flex-row gap-2 pr-4 border-b-2">
+            <View className="border-r-2">
+              {speaker?.participant?.photo ? (
+                <Image
+                  source={{ uri: speaker.participant?.photo }}
+                  style={{ width: 80, height: 80, backgroundColor: '#f0c674' }}
+                />
+              ) : (
+                <View
+                  style={{
+                    width: 80,
+                    height: 80,
+                    backgroundColor: '#f0c674',
+                  }}
+                />
+              )}
+            </View>
 
-          <View className="flex-1 py-2">
-            <Text className="text-xl font-bold">{speaker.fullName}</Text>
-            <Text numberOfLines={2}>{speaker.participant?.bio}</Text>
+            <View className="flex-1 py-2">
+              <Text className="text-xl font-bold">{speaker.fullName}</Text>
+              <Text numberOfLines={2}>{speaker.participant?.bio}</Text>
+            </View>
           </View>
-        </View>
+        </Link>
       ))}
     </>
   );
@@ -217,6 +226,8 @@ export default function SessionPage() {
       // TODO: figure out how to get these programmatically
       contentContainerStyle={{ paddingBottom: 100 }}
     >
+      <Stack.Screen options={{ title: talk.title }} />
+
       <View className="mb-4 border-b-2">
         <Timer
           event={talk}
