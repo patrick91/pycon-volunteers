@@ -47,7 +47,7 @@ export function SessionItem({ session, width, left }: SessionItemProps) {
   });
 
   const isRoomChange = session.title.toLowerCase().includes('room change');
-  const borderWidth = isRoomChange ? 0 : 4;
+  const borderWidth = isRoomChange ? 0 : 2;
 
   return (
     <Link

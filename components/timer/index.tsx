@@ -84,10 +84,17 @@ export const Timer = ({
 
   // if ended show this event was at ...
 
+  return (
+    <View className="bg-[#FEFFD3] p-4 justify-center items-center gap-2">
+      <Text className="text-xl font-bold">Time until Q&A</Text>
+      <Text className="tabular-nums text-7xl">29:59</Text>
+    </View>
+  );
+
   if (inDistantFuture) {
     return (
       <GestureDetector gesture={combinedGestures}>
-        <View className="border-4 border-black bg-[#FEFFD3] p-2 justify-center items-center">
+        <View className=" bg-[#FEFFD3] p-2 justify-center items-center">
           <Text>
             Event starts at {format(event.start, "HH:mm 'on' dd MMM")}
           </Text>

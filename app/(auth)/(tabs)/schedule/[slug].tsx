@@ -140,41 +140,44 @@ export default function SessionPage() {
   const talk = data.conference.talk;
 
   return (
-    <ScrollView className="flex-1 p-4">
-      <View className="mb-4">
+    <ScrollView className="flex-1">
+      <View className="mb-4 border-b-2">
         <Timer
           event={talk}
           liveEvent={{ id: 'dummy-id' }}
           onGoToNextTalk={() => {}}
         />
       </View>
-      <View className="mb-4">
+
+      <View className="border-b-2 pb-4 px-4">
         <Text className="text-4xl font-bold">{talk.title}</Text>
       </View>
 
-      <View className="flex-row gap-2 mb-4">
-        {talk.speakers.map((speaker) => (
-          <View key={speaker.id} className="flex-row items-center gap-2">
+      {talk.speakers.map((speaker) => (
+        <View key={speaker.id} className="flex-row gap-2 pr-4 border-b-2">
+          <View className="border-r-2">
             {speaker?.participant?.photo ? (
-              <SpeakerImage imageUri={speaker.participant?.photo} />
+              <SpeakerImage imageUri={speaker.participant?.photo} size={80} />
             ) : (
               <View
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
+                  width: 80,
+                  height: 80,
                   backgroundColor: '#f0c674',
                 }}
               />
             )}
-
-            <Text className="text-2xl font-bold">{speaker.fullName}</Text>
           </View>
-        ))}
-      </View>
 
-      <View className="mb-4">
-        <Text className="text-2xl">Elevator Pitch</Text>
+          <View className="flex-1 py-2">
+            <Text className="text-xl font-bold">{speaker.fullName}</Text>
+            <Text numberOfLines={2}>{speaker.participant?.bio}</Text>
+          </View>
+        </View>
+      ))}
+
+      <View className="mb-4 px-4 mt-4">
+        <Text className="text-2xl font-bold">Elevator Pitch</Text>
         <Markdown>{talk.elevatorPitch}</Markdown>
       </View>
 

@@ -242,9 +242,9 @@ export default function ContactsFlashList() {
               return (
                 <Text
                   className={clsx(
-                    'font-sans-semibold bg-white border-b-4 p-4',
+                    'font-sans-semibold bg-white border-b-2 p-4',
                     {
-                      'border-t-4': target === 'StickyHeader' || index === 0,
+                      'border-t-2': target === 'StickyHeader' || index === 0,
                     },
                   )}
                 >
@@ -254,7 +254,7 @@ export default function ContactsFlashList() {
             }
 
             return (
-              <View className="flex-row h-36 border-b-4 relative">
+              <View className="flex-row h-36 border-b-2 relative">
                 {item.map(({ session, width, left }) => (
                   <SessionItem
                     key={session.id}

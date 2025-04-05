@@ -147,7 +147,13 @@ const ImageModal = ({
   );
 };
 
-export function SpeakerImage({ imageUri }: { imageUri: string }) {
+export function SpeakerImage({
+  imageUri,
+  size = 64,
+}: {
+  imageUri: string;
+  size?: number;
+}) {
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -155,7 +161,7 @@ export function SpeakerImage({ imageUri }: { imageUri: string }) {
       <TouchableOpacity onPress={() => setModalVisible(true)}>
         <Image
           source={{ uri: imageUri }}
-          style={{ width: 40, height: 40, borderRadius: 20 }}
+          style={{ width: size, height: size }}
         />
       </TouchableOpacity>
       <ImageModal
