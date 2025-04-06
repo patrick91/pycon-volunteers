@@ -52,6 +52,7 @@ function SpeakersView({
                 <Image
                   source={{ uri: speaker.participant?.photo }}
                   style={{ width: 80, height: 80, backgroundColor: '#f0c674' }}
+                  contentFit="cover"
                 />
               ) : (
                 <View

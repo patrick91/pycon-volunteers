@@ -9,16 +9,70 @@ import * as SecureStore from 'expo-secure-store';
 import { Button } from '@/components/ui/button';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
-export const Timer = ({
+function TimeLeft({
+  title,
+  timeLeft,
+}: {
+  title: string;
+  timeLeft: string;
+}) {
+  return (
+    <>
+      <Text className="text-xl font-bold">{title}</Text>
+      <Text className="tabular-nums text-7xl">{timeLeft}</Text>
+    </>
+  );
+}
+
+function TimerContent({
   event,
-  liveEvent,
 }: {
   event: {
     start: string;
     end: string;
     id: string;
   };
-  liveEvent: {
+}) {
+  const { now, setOffsetSeconds, debug } = useNow();
+  const start = parseISO(event.start);
+  const end = parseISO(event.end);
+  const duration = end.getTime() - start.getTime();
+  const diffInHours = differenceInHours(now, start);
+  const inDistantFuture = diffInHours < -24;
+
+  const { delta, status, qaStart } = getDeltaAndStatus({
+    now,
+    start,
+    end,
+    duration,
+    includeQa: false,
+  });
+
+  if (inDistantFuture) {
+    return (
+      <View className="bg-[#FEFFD3] p-4 justify-center items-center gap-2">
+        <Text>
+          Event starts at {format(event.start, "HH:mm 'on' dd MMM yyyy")}
+        </Text>
+      </View>
+    );
+  }
+
+  const timer = getTimer({ delta });
+
+  return (
+    <View className="bg-[#FEFFD3] p-4 justify-center items-center gap-2">
+      <TimeLeft title="Time until Q&A" timeLeft={timer} />
+    </View>
+  );
+}
+
+export const Timer = ({
+  event,
+}: {
+  event: {
+    start: string;
+    end: string;
     id: string;
   };
 }) => {
@@ -37,34 +91,6 @@ export const Timer = ({
   const { now, setOffsetSeconds, debug } = useNow();
   const start = parseISO(event.start);
   const end = parseISO(event.end);
-  const duration = end.getTime() - start.getTime();
-  const [showDebugMessage, setShowDebugMessage] = useState(false);
-
-  const diffInHours = differenceInHours(now, start);
-  const inDistantFuture = diffInHours < -24;
-
-  const storageKey = `user-timer-start-${event.id}`;
-
-  const isLive = liveEvent?.id === event.id;
-
-  const { delta, status, qaStart } = getDeltaAndStatus({
-    now,
-    start,
-    end,
-    duration,
-    includeQa: false,
-  });
-
-  const timer = getTimer({ delta });
-
-  useEffect(() => {
-    if (debug) {
-      setShowDebugMessage(true);
-      setTimeout(() => {
-        setShowDebugMessage(false);
-      }, 2000);
-    }
-  }, [debug]);
 
   const tripleTapGesture = Gesture.Tap()
     .numberOfTaps(3)
@@ -82,53 +108,22 @@ export const Timer = ({
 
   const combinedGestures = Gesture.Race(tripleTapGesture, panGesture);
 
-  // if ended show this event was at ...
-
   return (
-    <View className="bg-[#FEFFD3] p-4 justify-center items-center gap-2">
-      <Text className="text-xl font-bold">Time until Q&A</Text>
-      <Text className="tabular-nums text-7xl">29:59</Text>
-    </View>
-  );
+    <GestureDetector gesture={combinedGestures}>
+      <View>
+        <TimerContent event={event} />
 
-  if (inDistantFuture) {
-    return (
-      <GestureDetector gesture={combinedGestures}>
-        <View className=" bg-[#FEFFD3] p-2 justify-center items-center">
-          <Text>
-            Event starts at {format(event.start, "HH:mm 'on' dd MMM")}
-          </Text>
-          <Text>{format(now, 'dd MM yyyy - HH:mm:ss')}</Text>
-        </View>
-      </GestureDetector>
-    );
-  }
-
-  return (
-    <>
-      <View className="mb-2">
-        <GestureDetector gesture={combinedGestures}>
-          <View className="relative">
-            <Countdown
-              prefix="Official"
-              timer={timer}
-              status={status}
-              time={100}
-              delta={delta}
-            />
-            {showDebugMessage && (
-              <View className="absolute top-0 left-0 right-0 bg-purple-600 bg-opacity-70 p-1">
-                <Text className="text-white text-xs text-center">
-                  Debug mode {debug ? 'enabled' : 'disabled'}
-                </Text>
-              </View>
-            )}
-            {debug && (
-              <View className="absolute top-1 right-1 w-3 h-3 rounded-full bg-purple-500" />
-            )}
-          </View>
-        </GestureDetector>
+        {debug && (
+          <>
+            <View className="absolute top-1 right-1 w-3 h-3 rounded-full bg-purple-500" />
+            <View className="border-t-2 w-full p-2 bg-purple-200">
+              <Text>Current time: {format(now, 'HH:mm:ss')}</Text>
+              <Text>Talk starts at: {format(start, 'HH:mm:ss')}</Text>
+              <Text>Talk ends at: {format(end, 'HH:mm:ss')}</Text>
+            </View>
+          </>
+        )}
       </View>
-    </>
+    </GestureDetector>
   );
 };
