@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.12.8",
+    "@bacons/apple-targets": "^0.2.1",
     "@expo/vector-icons": "^14.0.2",
     "@hookform/resolvers": "^3.10.0",
     "@react-navigation/bottom-tabs": "^7.2.0",

@@ -9,9 +9,14 @@ import { useSchedule } from '@/hooks/use-schedule';
 import { parseISO, isAfter, isEqual } from 'date-fns';
 import { SessionItem } from '@/components/session-item';
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import { useTalkConfiguration } from '@/context/talk-configuration';
+import { isLiveActivityRunning } from '@/modules/activity-controller';
+import {
+  startLiveActivity,
+  stopLiveActivity,
+} from '@/modules/activity-controller';
 
 export const SPEAKERS_FRAGMENT = graphql(
   `fragment SpeakersFragment on ScheduleItem {
@@ -252,6 +257,21 @@ export default function SessionPage() {
   const { data } = useSuspenseQuery(TALK_QUERY, {
     variables: { slug, code, language },
   });
+
+  const [activityIsRunning, setActivityIsRunning] = useState(
+    () => isLiveActivityRunning,
+  );
+
+  const handleStopLiveActivity = () => {
+    stopLiveActivity();
+  };
+
+  useEffect(() => {
+    startLiveActivity({
+      customString: 'Live Activity Testing',
+      customNumber: 123,
+    });
+  }, []);
 
   if (!data.conference.talk) {
     return <Text>Talk not found</Text>;
