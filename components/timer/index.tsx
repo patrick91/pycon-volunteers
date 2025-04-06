@@ -1,15 +1,13 @@
-import { differenceInHours, format, parse, parseISO } from 'date-fns';
-import { View, Text, TouchableHighlight, TouchableOpacity } from 'react-native';
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { NowProvider, useNow } from './context';
-import { Countdown } from './countdown';
+import { differenceInHours, format, parseISO } from 'date-fns';
+import { View, Text } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { useNow } from './context';
 import { getTimer } from './get-timer';
 import { getDeltaAndStatus } from './get-delta-and-status';
-import * as SecureStore from 'expo-secure-store';
-import { Button } from '@/components/ui/button';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useTalkConfiguration } from '@/context/talk-configuration';
 import clsx from 'clsx';
+import * as Haptics from 'expo-haptics';
 
 function TimeLeft({
   title,
@@ -25,6 +23,15 @@ function TimeLeft({
     </>
   );
 }
+
+const vibrateSequence = async () => {
+  const runs = 5;
+
+  for (let i = 0; i < runs; i++) {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+};
 
 function TimerContent({
   event,
@@ -51,6 +58,17 @@ function TimerContent({
     duration,
     includeQa: hasQa,
   });
+
+  // Track previous status to detect changes
+  const previousStatus = useRef(status);
+
+  // Trigger vibration when status changes
+  useEffect(() => {
+    if (previousStatus.current !== status) {
+      vibrateSequence();
+      previousStatus.current = status;
+    }
+  }, [status]);
 
   if (inDistantFuture) {
     return (
