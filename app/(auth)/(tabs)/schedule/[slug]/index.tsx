@@ -66,7 +66,9 @@ function SpeakersView({
 
             <View className="flex-1 py-2">
               <Text className="text-xl font-bold">{speaker.fullName}</Text>
-              <Text numberOfLines={2}>{speaker.participant?.bio}</Text>
+              <Text numberOfLines={2}>
+                {speaker.participant?.bio || 'No bio available'}
+              </Text>
             </View>
           </View>
         </Link>
