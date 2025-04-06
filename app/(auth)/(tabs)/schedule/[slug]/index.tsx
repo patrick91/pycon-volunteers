@@ -9,6 +9,8 @@ import { useSchedule } from '@/hooks/use-schedule';
 import { parseISO, isAfter, isEqual } from 'date-fns';
 import { SessionItem } from '@/components/session-item';
 import { Image } from 'expo-image';
+import { useState } from 'react';
+import BouncyCheckbox from 'react-native-bouncy-checkbox';
 
 export const SPEAKERS_FRAGMENT = graphql(
   `fragment SpeakersFragment on ScheduleItem {
@@ -205,6 +207,46 @@ function UpNextView({
   );
 }
 
+function TalkConfigurationView({ talk }: { talk: { id: string } }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [hasQa, setHasQa] = useState(true);
+
+  return (
+    <View className="border-b-2 pb-4 pt-4 px-4">
+      <TouchableOpacity onPress={() => setIsOpen(!isOpen)}>
+        <View className="flex-row gap-2">
+          <Text className="text-2xl font-bold">Talk Configuration</Text>
+          <View className="flex-1" />
+          <Text className="text-black text-lg font-bold">
+            {isOpen ? '👆' : '👇'}
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      {isOpen && (
+        <View className="mt-4">
+          <BouncyCheckbox
+            size={25}
+            fillColor="black"
+            text="Has Q&A"
+            textStyle={{
+              color: 'black',
+              textDecorationLine: 'none',
+              fontSize: 16,
+            }}
+            isChecked={hasQa}
+            useBuiltInState={false}
+            innerIconStyle={{ borderWidth: 2 }}
+            onPress={() => {
+              setHasQa(!hasQa);
+            }}
+          />
+        </View>
+      )}
+    </View>
+  );
+}
+
 export default function SessionPage() {
   const slug = useLocalSearchParams().slug as string;
   const code = 'pycon2025';
@@ -241,6 +283,8 @@ export default function SessionPage() {
       </View>
 
       <SpeakersView data={talk} />
+
+      <TalkConfigurationView talk={talk} />
 
       <View className="mb-4 px-4 mt-4">
         <Text className="text-2xl font-bold">Elevator Pitch</Text>
