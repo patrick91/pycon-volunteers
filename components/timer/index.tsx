@@ -1,173 +1,182 @@
-import { differenceInHours, format, parse, parseISO } from 'date-fns';
-import { View, Text, TouchableHighlight, TouchableOpacity } from "react-native";
-import React, { useEffect, useLayoutEffect, useState } from "react";
-import { useNow } from "./context";
-import { Countdown } from "./countdown";
-import { getTimer } from "./get-timer";
-import { getDeltaAndStatus } from "./get-delta-and-status";
-import * as SecureStore from 'expo-secure-store';
-import { Button } from '@/components/ui/button';
+import { differenceInHours, format, parseISO } from 'date-fns';
+import { View, Text } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { useNow } from './context';
+import { getTimer } from './get-timer';
+import { getDeltaAndStatus } from './get-delta-and-status';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useTalkConfiguration } from '@/context/talk-configuration';
+import clsx from 'clsx';
+import * as Haptics from 'expo-haptics';
 
-export const Timer = ({
+function TimeLeft({
+  title,
+  timeLeft,
+}: {
+  title: string;
+  timeLeft: string;
+}) {
+  return (
+    <>
+      <Text className="text-xl font-bold">{title}</Text>
+      <Text className="tabular-nums text-7xl">{timeLeft}</Text>
+    </>
+  );
+}
+
+const vibrateSequence = async () => {
+  const runs = 5;
+
+  for (let i = 0; i < runs; i++) {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+};
+
+function TimerContent({
   event,
-  liveEvent,
-  onGoToNextTalk,
 }: {
   event: {
     start: string;
     end: string;
     id: string;
   };
-  liveEvent: {
-    id: string;
-  };
-  onGoToNextTalk?: () => void;
-}) => {
+}) {
   const { now } = useNow();
   const start = parseISO(event.start);
   const end = parseISO(event.end);
-  const [userTimerStart, setUserTimerStart] = useState<Date | null>(null);
   const duration = end.getTime() - start.getTime();
-
   const diffInHours = differenceInHours(now, start);
   const inDistantFuture = diffInHours < -24;
 
-  const storageKey = `user-timer-start-${event.id}`;
+  const { hasQa } = useTalkConfiguration(event.id);
 
-  const isLive = liveEvent?.id === event.id;
-
-  const { delta, status, qaStart } = getDeltaAndStatus({
+  const { delta, status } = getDeltaAndStatus({
     now,
     start,
     end,
     duration,
-    includeQa: false,
+    includeQa: hasQa,
   });
 
-  const userTimerState = userTimerStart
-    ? getDeltaAndStatus({
-        now: new Date(),
-        start: userTimerStart,
-        end: new Date(userTimerStart.getTime() + duration),
-        duration,
-        includeQa: event.hasQa,
-      })
-    : null;
+  // Track previous status to detect changes
+  const previousStatus = useRef(status);
 
-  const timer = getTimer({ delta });
-  const userTimer = userTimerState ? getTimer(userTimerState) : null;
-
-  const [time, setTime] = useState(Date.now());
-
-  const stopTimer =async () => {
-    await SecureStore.deleteItemAsync(storageKey);
-    setUserTimerStart(null);
-  };
-
-  const startTimer = async () => {
-    const date = new Date();
-
-    await SecureStore.setItemAsync(storageKey, date.toISOString());
-
-    setUserTimerStart(date);
-  };
-
-  useLayoutEffect(() => {
-    SecureStore.getItemAsync(storageKey).then((value) => {
-      if (value) {
-        setUserTimerStart(new Date(value));
-      }
-    });
-  }, [storageKey]);
-
+  // Trigger vibration when status changes
   useEffect(() => {
-    const interval = setInterval(() => setTime(Date.now()), 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
-  const handleCountdownPress = async () => {
-    if (userTimerStart) {
-      const newTime = new Date(userTimerStart.getTime() - 1 * 60 * 1000 - 1000);
-
-      setUserTimerStart(newTime);
-
-      await SecureStore.setItemAsync(storageKey, newTime.toISOString());
+    if (previousStatus.current !== status) {
+      vibrateSequence();
+      previousStatus.current = status;
     }
-  };
-
-  // if ended show this event was at ...
+  }, [status]);
 
   if (inDistantFuture) {
     return (
-      <View className="border-4 border-black bg-[#FEFFD3] p-2 flex-row justify-center items-center">
-        <Text>Event starts at {format(event.start, "HH:mm 'on' dd MMM")}</Text>
+      <View className="bg-[#FEFFD3] p-4 justify-center items-center gap-2">
+        <Text>
+          Event starts at {format(event.start, "HH:mm 'on' dd MMM yyyy")}
+        </Text>
       </View>
     );
   }
 
+  const timer = getTimer({ delta });
+
+  const statusText = {
+    notStarted: 'Timer not started',
+    upcoming: 'Upcoming',
+    running: 'Time left',
+    runningQA: 'Time left until Q&A',
+    qa: 'Q&A',
+    over: 'Over 🤬',
+  }[status];
+
+  const almostDone =
+    (status === 'running' && delta < 5 * 60 * 1000) ||
+    (status === 'qa' && delta < 1 * 60 * 1000);
+
   return (
-    <>
-            <Countdown
-              timer={userTimer || "0:00"}
-              status={userTimerState ? userTimerState.status : "notStarted"}
-              time={time}
-              delta={userTimerState?.delta || 0}
-            />
+    <View
+      className={clsx('p-4 justify-center items-center gap-2', {
+        'bg-[#FEFFD3]': !almostDone && status !== 'over',
+        'bg-red-400': almostDone || status === 'over',
+      })}
+    >
+      <TimeLeft title={statusText} timeLeft={timer} />
+    </View>
+  );
+}
 
-          <View className="mb-2">
-            {isLive ? (
-              <Button
-                onPress={() => {
-                  if (userTimerStart) {
-                    stopTimer();
-                  } else {
-                    startTimer();
-                  }
-                }}
-              >
-                {userTimerStart ? "Stop and reset" : "Start"}
-              </Button>
-            ) : (
-              <TouchableHighlight
-                onPress={() => {
-                  if (userTimerStart) {
-                    stopTimer();
-                  }
+export const Timer = ({
+  event,
+}: {
+  event: {
+    start: string;
+    end: string;
+    id: string;
+  };
+}) => {
+  const { hasQa } = useTalkConfiguration(event.id);
+  const { setDebug } = useNow();
 
-                  onGoToNextTalk?.();
-                }}
-              >
-                <View className="p-2 border-2 bg-red-300">
-                  <Text className="uppercase font-bold text-center">
-                    Go to live talk
-                  </Text>
+  const handleDebugToggle = () => {
+    if (debug) {
+      setDebug(false);
+    } else {
+      setDebug({
+        start: event.start,
+      });
+    }
+  };
 
-                  <Text className="text-center text-xs">
-                    ({liveEvent?.title})
-                  </Text>
-                </View>
-              </TouchableHighlight>
-            )}
-          </View>
+  const { now, setOffsetSeconds, debug } = useNow();
+  const start = parseISO(event.start);
+  const end = parseISO(event.end);
+  const previousTranslateX = useRef<number | null>(null);
 
-      {inDistantFuture ? (
-        <View>
-          <Text>
-            Event starts at {format(event.start, "HH:mm 'on' dd MMM")}
-          </Text>
-        </View>
-      ) : (
-        <Countdown
-          prefix="Official"
-          timer={timer}
-          status={status}
-          time={time}
-          delta={delta}
-          small
-        />
-      )}
-    </>
+  const tripleTapGesture = Gesture.Tap()
+    .numberOfTaps(3)
+    .onEnd(() => {
+      handleDebugToggle();
+    })
+    .runOnJS(true);
+
+  const panGesture = Gesture.Pan()
+    .onStart((e) => {
+      previousTranslateX.current = e.translationX;
+    })
+    .onUpdate((e) => {
+      if (previousTranslateX.current === null) {
+        return;
+      }
+      const delta = e.translationX - previousTranslateX.current;
+      previousTranslateX.current = e.translationX;
+      setOffsetSeconds((prevOffset) => prevOffset + delta);
+    })
+    .onEnd(() => {
+      previousTranslateX.current = null;
+    })
+    .runOnJS(true);
+
+  const combinedGestures = Gesture.Race(tripleTapGesture, panGesture);
+
+  return (
+    <GestureDetector gesture={combinedGestures}>
+      <View>
+        <TimerContent event={event} />
+
+        {debug && (
+          <>
+            <View className="absolute top-1 right-1 w-3 h-3 rounded-full bg-purple-500" />
+            <View className="border-t-2 w-full p-2 bg-purple-200">
+              <Text>Current time: {format(now, 'HH:mm:ss')}</Text>
+              <Text>Talk starts at: {format(start, 'HH:mm:ss')}</Text>
+              <Text>Talk ends at: {format(end, 'HH:mm:ss')}</Text>
+              <Text>Has Q&A: {hasQa ? 'Yes' : 'No'}</Text>
+            </View>
+          </>
+        )}
+      </View>
+    </GestureDetector>
   );
 };

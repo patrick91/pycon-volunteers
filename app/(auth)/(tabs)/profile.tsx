@@ -41,7 +41,7 @@ export default function Profile() {
   const { signOut } = useSession();
   console.log(data);
   return (
-    <View>
+    <View className="flex-1 bg-white">
       <Text>Profile</Text>
       <ProfileInfo data={data.me} />
       <Button onPress={() => signOut()}>Sign Out</Button>

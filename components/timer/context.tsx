@@ -1,37 +1,36 @@
-import { parse } from 'date-fns';
-import React, { useEffect } from 'react';
+import { parseISO } from 'date-fns';
+import { useEffect, useState, useContext, createContext } from 'react';
 
-export const NowContext = React.createContext({
+export const NowContext = createContext({
   now: new Date(),
-  setOffsetMinutes: (offset: number) => {},
+  setOffsetSeconds: (offset: number | ((prev: number) => number)) => {},
+  setDebug: (debug: { start: string } | false) => {},
+  debug: false,
 });
 
 export const NowProvider = ({
   children,
-  day,
-  debug,
 }: {
   children: React.ReactNode;
-  day?: string;
-  debug?: boolean;
 }) => {
-  const baseDate =
-    debug && day ? parse(day, "yyyy-MM-dd", new Date()) : new Date();
+  const [debug, setDebug] = useState(false);
+  const [debugStart, setDebugStart] = useState('');
+  const baseDate = debug ? parseISO(debugStart) : new Date();
 
-  const [now, setNow] = React.useState(new Date());
-  const [offsetMinutes, setOffsetMinutes] = React.useState(0);
+  const [now, setNow] = useState(new Date());
+  const [offsetSeconds, setOffsetSeconds] = useState(0);
+  const [counter, setCounter] = useState(0);
 
   const updateNow = () => {
     if (debug) {
-      const date = new Date(new Date().getTime() - offsetMinutes * 60 * 1000);
-
-      date.setDate(baseDate.getDate());
-      date.setMonth(baseDate.getMonth());
-      date.setFullYear(baseDate.getFullYear());
-
+      const date = new Date(
+        baseDate.getTime() - offsetSeconds * 1000 + counter * 1000,
+      );
       setNow(date);
+      setCounter(counter + 1);
     } else {
-      setNow(new Date());
+      const date = new Date(Date.now() - offsetSeconds * 1000);
+      setNow(date);
     }
   };
 
@@ -41,13 +40,29 @@ export const NowProvider = ({
     return () => clearInterval(interval);
   });
 
-  useEffect(updateNow, []);
+  useEffect(() => {
+    if (debug) {
+      setOffsetSeconds(0);
+    }
+  }, [debug]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: we want to update the now when the debug or offsetMinutes change
+  useEffect(updateNow, [debug, offsetSeconds]);
 
   return (
     <NowContext.Provider
       value={{
         now,
-        setOffsetMinutes,
+        setOffsetSeconds,
+        setDebug: (debug: { start: string } | false) => {
+          if (debug) {
+            setDebug(true);
+            setDebugStart(debug.start);
+          } else {
+            setDebug(false);
+          }
+        },
+        debug,
       }}
     >
       {children}
@@ -56,7 +71,7 @@ export const NowProvider = ({
 };
 
 export const useNow = () => {
-  const { now, setOffsetMinutes } = React.useContext(NowContext);
+  const { now, setOffsetSeconds, setDebug, debug } = useContext(NowContext);
 
-  return { now, setOffsetMinutes };
+  return { now, setOffsetSeconds, setDebug, debug };
 };
