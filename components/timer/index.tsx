@@ -8,6 +8,8 @@ import { getDeltaAndStatus } from './get-delta-and-status';
 import * as SecureStore from 'expo-secure-store';
 import { Button } from '@/components/ui/button';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useTalkConfiguration } from '@/context/talk-configuration';
+import clsx from 'clsx';
 
 function TimeLeft({
   title,
@@ -33,19 +35,21 @@ function TimerContent({
     id: string;
   };
 }) {
-  const { now, setOffsetSeconds, debug } = useNow();
+  const { now } = useNow();
   const start = parseISO(event.start);
   const end = parseISO(event.end);
   const duration = end.getTime() - start.getTime();
   const diffInHours = differenceInHours(now, start);
   const inDistantFuture = diffInHours < -24;
 
-  const { delta, status, qaStart } = getDeltaAndStatus({
+  const { hasQa } = useTalkConfiguration(event.id);
+
+  const { delta, status } = getDeltaAndStatus({
     now,
     start,
     end,
     duration,
-    includeQa: false,
+    includeQa: hasQa,
   });
 
   if (inDistantFuture) {
@@ -60,9 +64,27 @@ function TimerContent({
 
   const timer = getTimer({ delta });
 
+  const statusText = {
+    notStarted: 'Timer not started',
+    upcoming: 'Upcoming',
+    running: 'Time left',
+    runningQA: 'Time left until Q&A',
+    qa: 'Q&A',
+    over: 'Over 🤬',
+  }[status];
+
+  const almostDone =
+    (status === 'running' && delta < 5 * 60 * 1000) ||
+    (status === 'qa' && delta < 1 * 60 * 1000);
+
   return (
-    <View className="bg-[#FEFFD3] p-4 justify-center items-center gap-2">
-      <TimeLeft title="Time until Q&A" timeLeft={timer} />
+    <View
+      className={clsx('p-4 justify-center items-center gap-2', {
+        'bg-[#FEFFD3]': !almostDone && status !== 'over',
+        'bg-red-400': almostDone || status === 'over',
+      })}
+    >
+      <TimeLeft title={statusText} timeLeft={timer} />
     </View>
   );
 }
@@ -76,6 +98,7 @@ export const Timer = ({
     id: string;
   };
 }) => {
+  const { hasQa } = useTalkConfiguration(event.id);
   const { setDebug } = useNow();
 
   const handleDebugToggle = () => {
@@ -120,6 +143,7 @@ export const Timer = ({
               <Text>Current time: {format(now, 'HH:mm:ss')}</Text>
               <Text>Talk starts at: {format(start, 'HH:mm:ss')}</Text>
               <Text>Talk ends at: {format(end, 'HH:mm:ss')}</Text>
+              <Text>Has Q&A: {hasQa ? 'Yes' : 'No'}</Text>
             </View>
           </>
         )}

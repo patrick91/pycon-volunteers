@@ -11,6 +11,7 @@ import { SessionItem } from '@/components/session-item';
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
+import { useTalkConfiguration } from '@/context/talk-configuration';
 
 export const SPEAKERS_FRAGMENT = graphql(
   `fragment SpeakersFragment on ScheduleItem {
@@ -134,14 +135,7 @@ const TALK_QUERY = graphql(
             name
             id
           }
-  
-          materials {
-            id
-            name
-            url
-            fileUrl
-            fileMimeType
-          }
+
         }
   
         ...SpeakersFragment
@@ -212,7 +206,7 @@ function UpNextView({
 
 function TalkConfigurationView({ talk }: { talk: { id: string } }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [hasQa, setHasQa] = useState(true);
+  const { hasQa, setHasQa } = useTalkConfiguration(talk.id);
 
   return (
     <View className="border-b-2 pb-4 pt-4 px-4">
@@ -274,11 +268,7 @@ export default function SessionPage() {
       <Stack.Screen options={{ title: talk.title }} />
 
       <View className="mb-4 border-b-2">
-        <Timer
-          event={talk}
-          liveEvent={{ id: 'dummy-id' }}
-          onGoToNextTalk={() => {}}
-        />
+        <Timer event={talk} />
       </View>
 
       <View className="border-b-2 pb-4 px-4">

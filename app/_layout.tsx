@@ -23,6 +23,7 @@ import { onError } from '@apollo/client/link/error';
 import '../global.css';
 import { NowProvider } from '@/components/timer/context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { TalkConfigurationProvider } from '@/context/talk-configuration';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -85,22 +86,24 @@ export default function RootLayout() {
         <KeyboardProvider>
           <APIProvider>
             <SessionProvider>
-              <ThemeProvider
-                value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
-              >
-                <Stack>
-                  <Stack.Screen
-                    name="(auth)"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="sign-in"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen name="+not-found" />
-                </Stack>
-                <StatusBar style="auto" />
-              </ThemeProvider>
+              <TalkConfigurationProvider>
+                <ThemeProvider
+                  value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+                >
+                  <Stack>
+                    <Stack.Screen
+                      name="(auth)"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="sign-in"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen name="+not-found" />
+                  </Stack>
+                  <StatusBar style="auto" />
+                </ThemeProvider>
+              </TalkConfigurationProvider>
             </SessionProvider>
           </APIProvider>
         </KeyboardProvider>
