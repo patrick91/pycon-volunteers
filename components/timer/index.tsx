@@ -1,6 +1,6 @@
 import { differenceInHours, format, parse, parseISO } from 'date-fns';
 import { View, Text, TouchableHighlight, TouchableOpacity } from 'react-native';
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { NowProvider, useNow } from './context';
 import { Countdown } from './countdown';
 import { getTimer } from './get-timer';
@@ -114,6 +114,7 @@ export const Timer = ({
   const { now, setOffsetSeconds, debug } = useNow();
   const start = parseISO(event.start);
   const end = parseISO(event.end);
+  const previousTranslateX = useRef<number | null>(null);
 
   const tripleTapGesture = Gesture.Tap()
     .numberOfTaps(3)
@@ -123,9 +124,19 @@ export const Timer = ({
     .runOnJS(true);
 
   const panGesture = Gesture.Pan()
+    .onStart((e) => {
+      previousTranslateX.current = e.translationX;
+    })
     .onUpdate((e) => {
-      const secondsOffset = Math.round(e.translationX * 10);
-      setOffsetSeconds(secondsOffset);
+      if (previousTranslateX.current === null) {
+        return;
+      }
+      const delta = e.translationX - previousTranslateX.current;
+      previousTranslateX.current = e.translationX;
+      setOffsetSeconds((prevOffset) => prevOffset + delta);
+    })
+    .onEnd(() => {
+      previousTranslateX.current = null;
     })
     .runOnJS(true);
 

@@ -3,7 +3,7 @@ import { useEffect, useState, useContext, createContext } from 'react';
 
 export const NowContext = createContext({
   now: new Date(),
-  setOffsetSeconds: (offset: number) => {},
+  setOffsetSeconds: (offset: number | ((prev: number) => number)) => {},
   setDebug: (debug: { start: string } | false) => {},
   debug: false,
 });
