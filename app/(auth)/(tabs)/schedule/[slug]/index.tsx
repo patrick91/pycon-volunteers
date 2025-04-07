@@ -9,6 +9,7 @@ import { useSchedule } from '@/hooks/use-schedule';
 import { parseISO, isAfter, isEqual } from 'date-fns';
 import { SessionItem } from '@/components/session-item';
 import { Image } from 'expo-image';
+import * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import { useTalkConfiguration } from '@/context/talk-configuration';
@@ -249,6 +250,24 @@ function TalkConfigurationView({ talk }: { talk: { id: string } }) {
   );
 }
 
+import * as TaskManager from 'expo-task-manager';
+
+const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
+
+TaskManager.defineTask(
+  BACKGROUND_NOTIFICATION_TASK,
+  async ({ data, error, executionInfo }) => {
+    console.log('Received a notification in the background!');
+    // Do something with the notification data
+  },
+);
+
+Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+Notifications.addNotificationReceivedListener((notification) => {
+  console.log('Received a notification in the foreground!');
+  // Do something with the notification data
+});
+
 export default function SessionPage() {
   const slug = useLocalSearchParams().slug as string;
   const code = 'pycon2025';
@@ -267,10 +286,43 @@ export default function SessionPage() {
   };
 
   useEffect(() => {
-    startLiveActivity({
-      customString: 'Live Activity Testing',
-      customNumber: 123,
-    });
+    const setupNotifications = async () => {
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        console.log('Failed to get push token for push notification!');
+        return;
+      }
+
+      startLiveActivity({
+        customString: 'Session 101',
+        customNumber: 1,
+        eventName: 'Q&A',
+        endTimeInterval: 1800, // 30 minutes
+      });
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          data: {
+            talkId: talk.id,
+          },
+          _contentAvailable: true,
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: 2,
+        },
+      });
+    };
+
+    setupNotifications();
   }, []);
 
   if (!data.conference.talk) {

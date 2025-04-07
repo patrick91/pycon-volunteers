@@ -9,10 +9,13 @@ import ActivityKit
 import SwiftUI
 
 public struct MyLiveActivityAttributes: ActivityAttributes {
-  public struct ContentState: Codable & Hashable {}
+  public struct ContentState: Codable & Hashable {
+      var endTime: Date
+      var eventName: String
+  }
 
   public typealias MyLiveActivityState = ContentState
 
-  public let customString: String
-  public let customNumber: Int
+  var customString: String
+  var customNumber: Int
 }

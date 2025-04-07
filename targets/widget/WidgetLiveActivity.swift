@@ -2,43 +2,99 @@ import ActivityKit
 import WidgetKit
 import SwiftUI
 
+
+
+
 struct WidgetLiveActivity: Widget {
     var body: some WidgetConfiguration {
-      ActivityConfiguration(for: MyLiveActivityAttributes.self) { context in
+        ActivityConfiguration(for: MyLiveActivityAttributes.self) { context in
             // Lock screen/banner UI goes here
-            VStack {
-              Text(context.attributes.customString)
+            VStack(spacing: 12) {
+                Text(context.attributes.customString)
+                    .font(.headline)
+                
+                Text("Time until \(context.state.eventName)")
+                    .font(.subheadline)
+                
+                TimerView(endTime: context.state.endTime)
+                    .font(.system(.title, design: .rounded).monospacedDigit())
+                    .foregroundColor(.white)
             }
+            .padding()
+            .frame(maxWidth: .infinity)
         } dynamicIsland: { context in
             DynamicIsland {
-                // Expanded UI goes here.  Compose the expanded UI through
-                // various regions, like leading/trailing/center/bottom
+                // Expanded UI goes here
                 DynamicIslandExpandedRegion(.leading) {
-                    Text("Leading")
+                    VStack(alignment: .leading) {
+                        Text(context.attributes.customString)
+                            .font(.headline)
+                        Text("Time until \(context.state.eventName)")
+                            .font(.subheadline)
+                    }
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text("Trailing")
+                    TimerView(endTime: context.state.endTime)
+                        .font(.system(.title3, design: .rounded).monospacedDigit())
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    Text("Bottom")
+                    // Additional information can go here
+                    Text("Tap when ready")
+                        .font(.caption)
+                        .frame(maxWidth: .infinity, alignment: .center)
                 }
             } compactLeading: {
-                Text("L")
+                Text(context.state.eventName.prefix(1))
+                    .font(.headline)
             } compactTrailing: {
-                Text("T")
+                TimerView(endTime: context.state.endTime, showLabels: false)
+                    .font(.caption2.monospacedDigit())
             } minimal: {
-                Text("M")
+                Text(timerInterval: Date()...context.state.endTime, showsHours: true)
+                    .font(.caption2.monospacedDigit())
+                    .frame(width: 40)
+            }
+        }
+    }
+}
+
+// Custom timer view component
+struct TimerView: View {
+    let endTime: Date
+    var showLabels: Bool = true
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            if showLabels {
+                VStack {
+                    Text(timerInterval: Date()...endTime, countsDown: true, showsHours: true)
+                        .multilineTextAlignment(.center)
+                        .monospacedDigit()
+                        .foregroundStyle(.cyan)
+                    
+                    Text("remaining")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            } else {
+                Text(timerInterval: Date()...endTime, countsDown: true, showsHours: true)
+                    .multilineTextAlignment(.center)
+                    .monospacedDigit()
             }
         }
     }
 }
 
 #Preview(
-  "Lockscreen View",
-  as: .content,
-  using: MyLiveActivityAttributes(customString: "Hello World", customNumber: 1)
+    "Lockscreen View",
+    as: .content,
+    using: MyLiveActivityAttributes(customString: "Session 101", customNumber: 1)
 ) {
-  WidgetLiveActivity()
+    WidgetLiveActivity()
 } contentStates: {
-  MyLiveActivityAttributes.MyLiveActivityState()
+    // Preview with 30 minutes remaining
+    MyLiveActivityAttributes.MyLiveActivityState(
+        endTime: Date().addingTimeInterval(30 * 60),
+        eventName: "Q&A"
+    )
 }

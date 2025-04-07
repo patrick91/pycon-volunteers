@@ -1,6 +1,8 @@
 export type LiveActivityParams = {
   customString: string;
   customNumber: number;
+  eventName: string;
+  endTimeInterval: number;
 };
 
 export type StartLiveActivityFn = (
