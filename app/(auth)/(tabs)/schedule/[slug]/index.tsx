@@ -160,17 +160,13 @@ const SectionButton = ({ title }: { title: string }) => {
   );
 };
 
-function UpNextView({
-  current,
-}: {
-  current: {
-    start: string;
-    end: string;
-    rooms: {
-      name: string;
-    }[];
-  };
-}) {
+const useNextSession = (current: {
+  start: string;
+  end: string;
+  rooms: {
+    name: string;
+  }[];
+}) => {
   // TODO: get the day from the session
   const { schedule } = useSchedule(1);
 
@@ -193,6 +189,22 @@ function UpNextView({
       isAfter(sessionStart, currentEnd) || isEqual(sessionStart, currentEnd)
     );
   });
+
+  return nextSession;
+};
+
+function UpNextView({
+  current,
+}: {
+  current: {
+    start: string;
+    end: string;
+    rooms: {
+      name: string;
+    }[];
+  };
+}) {
+  const nextSession = useNextSession(current);
 
   if (!nextSession) {
     return null;
@@ -277,6 +289,12 @@ export default function SessionPage() {
     variables: { slug, code, language },
   });
 
+  const { talk } = data.conference;
+
+  if (!talk) {
+    throw new Error('Talk not found');
+  }
+
   const [activityIsRunning, setActivityIsRunning] = useState(
     () => isLiveActivityRunning,
   );
@@ -284,6 +302,8 @@ export default function SessionPage() {
   const handleStopLiveActivity = () => {
     stopLiveActivity();
   };
+
+  const nextSession = useNextSession(talk);
 
   useEffect(() => {
     const setupNotifications = async () => {
@@ -301,11 +321,24 @@ export default function SessionPage() {
         return;
       }
 
+      const now = new Date();
+      const endTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes from now
+      const qaTime = new Date(now.getTime() + 1 * 60 * 1000); // 1 minute from now
+      const roomChangeTime = new Date(now.getTime() + 2 * 60 * 1000); // 2 minutes from now
+
+      // Ensure dates are properly formatted as ISO strings
+      const formatDate = (date: Date) => {
+        return date.toISOString().split('.')[0] + 'Z';
+      };
+
       startLiveActivity({
-        customString: 'Session 101',
+        customString: talk.title,
         customNumber: 1,
         eventName: 'Q&A',
-        endTimeInterval: 1800, // 30 minutes
+        endTime: formatDate(endTime),
+        qaTime: formatDate(qaTime),
+        roomChangeTime: formatDate(roomChangeTime),
+        nextTalk: nextSession?.session.title,
       });
 
       await Notifications.scheduleNotificationAsync({
@@ -313,7 +346,6 @@ export default function SessionPage() {
           data: {
             talkId: talk.id,
           },
-          _contentAvailable: true,
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
@@ -323,13 +355,7 @@ export default function SessionPage() {
     };
 
     setupNotifications();
-  }, []);
-
-  if (!data.conference.talk) {
-    return <Text>Talk not found</Text>;
-  }
-
-  const talk = data.conference.talk;
+  }, [talk.id, talk.title, nextSession?.session.title]);
 
   return (
     <ScrollView

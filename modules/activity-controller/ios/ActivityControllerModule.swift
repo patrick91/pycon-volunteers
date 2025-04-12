@@ -40,7 +40,10 @@ struct StartActivityArgs: Codable {
   let customString: String
   let customNumber: Int
   let eventName: String
-  let endTimeInterval: TimeInterval // Seconds from now until the timer ends
+  let endTime: String // ISO string
+  let qaTime: String // ISO string
+  let roomChangeTime: String // ISO string
+  let nextTalk: String?
 
   public static func fromJSON(rawData: String) -> Self? {
     let decoder = JSONDecoder()
@@ -50,7 +53,10 @@ struct StartActivityArgs: Codable {
 
 struct UpdateActivityArgs: Codable {
   let eventName: String
-  let endTimeInterval: TimeInterval // Seconds from now until the timer ends
+  let endTime: String // ISO string
+  let qaTime: String // ISO string
+  let roomChangeTime: String // ISO string
+  let nextTalk: String?
 
   public static func fromJSON(rawData: String) -> Self? {
     let decoder = JSONDecoder()
@@ -106,6 +112,75 @@ func isActivityRunning() -> Bool {
 
 public class ActivityControllerModule: Module {
   private var activityWrapper: ActivityWrapper?
+  private var updateTimer: Timer?
+  
+  private func startUpdateTimer() {
+    // Stop any existing timer
+    updateTimer?.invalidate()
+    updateTimer = nil
+    
+    log.debug("Starting update timer")
+    
+    // Ensure timer is created and scheduled on the main thread
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
+      
+      log.debug("Creating timer on main thread")
+      self.updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+        log.debug("Timer fired")
+        self?.checkAndUpdateActivity()
+      }
+      
+      // Add timer to main run loop
+      RunLoop.main.add(self.updateTimer!, forMode: .common)
+      log.debug("Timer added to run loop")
+    }
+  }
+  
+  private func stopUpdateTimer() {
+    log.debug("Stopping update timer")
+    DispatchQueue.main.async { [weak self] in
+      self?.updateTimer?.invalidate()
+      self?.updateTimer = nil
+      log.debug("Timer stopped and invalidated")
+    }
+  }
+  
+  private func checkAndUpdateActivity() {
+    guard #available(iOS 16.2, *) else { return }
+    guard let activityWrapper = getCurrentActivity() as? DefinedActivityWrapper else { return }
+    
+    let activity = activityWrapper.getActivity()
+    let currentState = activity.content.state
+    let currentTime = Date()
+    
+    // Calculate remaining time until Q&A and room change
+    let remainingQATime = currentState.qaTime.timeIntervalSince(currentTime)
+    let remainingRoomChangeTime = currentState.roomChangeTime.timeIntervalSince(currentTime)
+    
+    log.debug("remainingQATime: \(remainingQATime)")
+    log.debug("remainingRoomChangeTime: \(remainingRoomChangeTime)")
+    
+    // If either timer has reached zero, update the activity
+    if remainingQATime <= 0 || remainingRoomChangeTime <= 0 {
+      let updatedState = MyLiveActivityAttributes.MyLiveActivityState(
+        endTime: currentState.endTime,
+        eventName: remainingQATime <= 0 ? "Q&A" : "Room Change",
+        qaTime: currentState.qaTime,
+        roomChangeTime: currentState.roomChangeTime,
+        nextTalk: currentState.nextTalk
+      )
+      
+      Task {
+        await activity.update(
+          ActivityContent<MyLiveActivityAttributes.MyLiveActivityState>(
+            state: updatedState,
+            staleDate: currentState.endTime.addingTimeInterval(300)
+          )
+        )
+      }
+    }
+  }
 
   public func definition() -> ModuleDefinition {
     Name("ActivityController")
@@ -127,7 +202,7 @@ public class ActivityControllerModule: Module {
       }
 
       guard let args = StartActivityArgs.fromJSON(rawData: rawData) else {
-        throw ActivityDataException(rawData)
+        throw ActivityDataException("Failed to parse activity arguments")
       }
 
       guard isActivityRunning() == false else {
@@ -144,26 +219,42 @@ public class ActivityControllerModule: Module {
           customString: args.customString, customNumber: args.customNumber
         )
 
-        print("args.eventName: \(args.eventName)")
-        print("args.endTimeInterval: \(args.endTimeInterval)")
+        // Parse the date strings with better error handling
+        let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.formatOptions = [.withInternetDateTime]
         
-        // Calculate the end time based on the provided interval        
-        let endTime = Date().addingTimeInterval(args.endTimeInterval)
-
-        print("current date: \(Date())")
-        print("endTime: \(endTime)")
+        guard let endTime = dateFormatter.date(from: args.endTime) else {
+          throw ActivityDataException("Invalid endTime format: \(args.endTime)")
+        }
+        
+        guard let qaTime = dateFormatter.date(from: args.qaTime) else {
+          throw ActivityDataException("Invalid qaTime format: \(args.qaTime)")
+        }
+        
+        guard let roomChangeTime = dateFormatter.date(from: args.roomChangeTime) else {
+          throw ActivityDataException("Invalid roomChangeTime format: \(args.roomChangeTime)")
+        }
         
         let activityState = MyLiveActivityAttributes.MyLiveActivityState(
           endTime: endTime,
-          eventName: args.eventName
+          eventName: args.eventName,
+          qaTime: qaTime,
+          roomChangeTime: roomChangeTime,
+          nextTalk: args.nextTalk
         )
 
         let activity = try Activity.request(
           attributes: activityAttrs,
-          content: .init(state: activityState, staleDate: endTime.addingTimeInterval(300)) // Add 5 minutes buffer
+          content: ActivityContent<MyLiveActivityAttributes.MyLiveActivityState>(
+            state: activityState,
+            staleDate: endTime.addingTimeInterval(300) // Add 5 minutes buffer
+          )
         )
 
         log.debug("Started \(activity.id)")
+        
+        // Start the update timer
+        startUpdateTimer()
 
         return StartActivityReturnType(activityId: Field(wrappedValue: activity.id))
       } catch let error {
@@ -191,12 +282,20 @@ public class ActivityControllerModule: Module {
       
       let activity = activityWrapper.getActivity()
       
-      // Calculate the end time based on the provided interval
-      let endTime = Date().addingTimeInterval(args.endTimeInterval)
+      // Parse the date strings
+      let dateFormatter = ISO8601DateFormatter()
+      guard let endTime = dateFormatter.date(from: args.endTime),
+            let qaTime = dateFormatter.date(from: args.qaTime),
+            let roomChangeTime = dateFormatter.date(from: args.roomChangeTime) else {
+        throw ActivityDataException("Invalid date format")
+      }
       
       let updatedState = MyLiveActivityAttributes.MyLiveActivityState(
         endTime: endTime,
-        eventName: args.eventName
+        eventName: args.eventName,
+        qaTime: qaTime,
+        roomChangeTime: roomChangeTime,
+        nextTalk: args.nextTalk
       )
       
       Task {
@@ -226,6 +325,8 @@ public class ActivityControllerModule: Module {
       Task {
         await activity.end(nil, dismissalPolicy: .immediate)
         log.debug("Stopped activity \(activity.id)")
+        // Stop the update timer
+        stopUpdateTimer()
         return promise.resolve()
       }
     }
