@@ -323,8 +323,8 @@ export default function SessionPage() {
 
       const now = new Date();
       const endTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes from now
-      const qaTime = new Date(now.getTime() + 1 * 60 * 1000); // 1 minute from now
-      const roomChangeTime = new Date(now.getTime() + 2 * 60 * 1000); // 2 minutes from now
+      const qaTime = new Date(now.getTime() + 0.5 * 60 * 1000); // 1 minute from now
+      const roomChangeTime = new Date(now.getTime() + 1 * 60 * 1000); // 2 minutes from now
 
       // Ensure dates are properly formatted as ISO strings
       const formatDate = (date: Date) => {
