@@ -1,71 +1,131 @@
 import ActivityKit
-import WidgetKit
 import SwiftUI
+import WidgetKit
 import os
 
-private let log = Logger(subsystem: "com.pycon.volunteers", category: "WidgetLiveActivity")
+private let log = Logger(
+    subsystem: "com.pycon.volunteers",
+    category: "WidgetLiveActivity"
+)
 
 struct WidgetLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: MyLiveActivityAttributes.self) { context in
-            VStack(spacing: 12) {
-                Text(context.state.sessionTitle)
-                    .font(.headline)
+            let currentTime = Date()
+            let timeUntilRoomChange = context.state.roomChangeTime
+                .timeIntervalSince(currentTime)
+            let timeUntilQA = context.state.qaTime
+                .timeIntervalSince(currentTime)
+            
+            let hasQa = timeUntilRoomChange != timeUntilQA && timeUntilQA > 0
+            
+            let endTime = hasQa ? context.state.qaTime : context.state.roomChangeTime
+            
+            
+            let text = hasQa ? "Time until Q&A" : "Time until Room Change"
+            
+            VStack(spacing: 0) {
+                if timeUntilRoomChange > 0 {
+                    HStack(alignment: .top, spacing: 4) {
+                        // Title with flexible width
+                        Text(context.state.sessionTitle)
+                            .font(.largeTitle)
+                            .fontWeight(.semibold)
+                            .lineLimit(4)
+                            .minimumScaleFactor(0.7)
+                            .layoutPriority(1)
+                            .foregroundColor(.black)
+                        
+                        Spacer()
+                        
+                        // Timer section with fixed size
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(text)
+                                .font(.subheadline)
+                                .foregroundColor(.black)
+                            
+                            Text(
+                                timerInterval: Date()...endTime,
+                                countsDown: true,
+                                showsHours: true
+                            )
+                            .monospacedDigit()
+                            .multilineTextAlignment(.trailing)
+                            .font(.system(size: 36, weight: .semibold))
+                            .foregroundColor(.black)
+                        }.frame(minWidth: 110)
+                    }.padding()
+                    
+                } else {
+                    Text("Time for the next talk! 🔥")
+                        .font(.subheadline)
+                        .foregroundColor(.black)
+                        .padding()
+                }
                 
-                VStack(spacing: 4) {
-                    let currentTime = Date()
-                    let remainingQATime = context.state.qaTime.timeIntervalSince(currentTime)
-                    let remainingRoomChangeTime = context.state.roomChangeTime.timeIntervalSince(currentTime)
-                    
-                    if remainingQATime > 0 && remainingQATime != remainingRoomChangeTime {
-                        Text("Time until Q&A")
-                            .font(.subheadline)
-                        TimerView(endTime: context.state.qaTime)
-                            .font(.system(.title, design: .rounded).monospacedDigit())
-                            .foregroundColor(.white)
-                    } else if remainingRoomChangeTime > 0 {
-                        Text("Time until Room Change")
-                            .font(.subheadline)
-                        TimerView(endTime: context.state.roomChangeTime)
-                            .font(.system(.title, design: .rounded).monospacedDigit())
-                            .foregroundColor(.white)
-                    } else {
-                        Text("Time for next talk")
-                            .font(.subheadline)
-                    }
-                    
-                    if let nextTalk = context.state.nextTalk {
-                        Text("Next: \(nextTalk)")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
+                if let nextTalk = context.state.nextTalk {
+                    Text("Next: \(nextTalk)")
+                        .font(.subheadline)
+                        .foregroundColor(Color(#colorLiteral(red: 0.184, green: 0.184, blue: 0.184, alpha: 1)))
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading) // Add alignment: .leading here
+                        .padding()
+                        .background(
+                            Color(
+                                #colorLiteral(
+                                    red: 0.918,
+                                    green: 0.839,
+                                    blue: 0.808,
+                                    alpha: 1
+                                )
+                            )
+                        )
                 }
             }
-            .padding()
+            .activityBackgroundTint(
+                Color(
+                    #colorLiteral(
+                        red: 0.988,
+                        green: 0.91,
+                        blue: 0.871,
+                        alpha: 1
+                    )
+                )
+            )
+            .contentMargins(0)
             .frame(maxWidth: .infinity)
+            
         } dynamicIsland: { context in
             // Log Dynamic Island updates
             let _ = log.debug("Updating Dynamic Island UI")
             
-          return DynamicIsland {
+            return DynamicIsland {
                 // Expanded UI goes here
                 DynamicIslandExpandedRegion(.leading) {
                     VStack(alignment: .leading) {
                         Text(context.state.sessionTitle)
                             .font(.headline)
+                            .foregroundColor(.black)
                         let currentTime = Date()
-                        let remainingQATime = context.state.qaTime.timeIntervalSince(currentTime)
-                        let remainingRoomChangeTime = context.state.roomChangeTime.timeIntervalSince(currentTime)
+                        let remainingQATime = context.state.qaTime
+                            .timeIntervalSince(currentTime)
+                        let remainingRoomChangeTime = context.state
+                            .roomChangeTime.timeIntervalSince(currentTime)
                         
-                        if remainingQATime > 0 && remainingQATime != remainingRoomChangeTime {
+                        if remainingQATime > 0
+                            && remainingQATime != remainingRoomChangeTime
+                        {
                             Text("Time until Q&A")
                                 .font(.subheadline)
+                                .foregroundColor(.black)
                         } else if remainingRoomChangeTime > 0 {
                             Text("Time until Room Change")
                                 .font(.subheadline)
+                                .foregroundColor(.black)
                         } else {
                             Text("Time for next talk")
                                 .font(.subheadline)
+                                .foregroundColor(.black)
                         }
                         if let nextTalk = context.state.nextTalk {
                             Text("Next: \(nextTalk)")
@@ -76,93 +136,92 @@ struct WidgetLiveActivity: Widget {
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     let currentTime = Date()
-                    let remainingQATime = context.state.qaTime.timeIntervalSince(currentTime)
-                    let remainingRoomChangeTime = context.state.roomChangeTime.timeIntervalSince(currentTime)
+                    let remainingQATime = context.state.qaTime
+                        .timeIntervalSince(currentTime)
+                    let remainingRoomChangeTime = context.state.roomChangeTime
+                        .timeIntervalSince(currentTime)
                     
-                    if remainingQATime > 0 && remainingQATime != remainingRoomChangeTime {
-                        TimerView(endTime: context.state.qaTime)
-                            .font(.system(.title3, design: .rounded).monospacedDigit())
+                    if remainingQATime > 0
+                        && remainingQATime != remainingRoomChangeTime
+                    {
+                        
                     } else if remainingRoomChangeTime > 0 {
-                        TimerView(endTime: context.state.roomChangeTime)
-                            .font(.system(.title3, design: .rounded).monospacedDigit())
+                        
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     Text("Tap for details")
                         .font(.caption)
+                        .foregroundColor(.black)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
             } compactLeading: {
                 let currentTime = Date()
-                let remainingQATime = context.state.qaTime.timeIntervalSince(currentTime)
-                let remainingRoomChangeTime = context.state.roomChangeTime.timeIntervalSince(currentTime)
+                let remainingQATime = context.state.qaTime.timeIntervalSince(
+                    currentTime
+                )
+                let remainingRoomChangeTime = context.state.roomChangeTime
+                    .timeIntervalSince(currentTime)
                 
-                if remainingQATime > 0 && remainingQATime != remainingRoomChangeTime {
+                if remainingQATime > 0
+                    && remainingQATime != remainingRoomChangeTime
+                {
                     Text("Q&A")
                         .font(.headline)
+                        .foregroundColor(.black)
                 } else if remainingRoomChangeTime > 0 {
                     Text("Room")
                         .font(.headline)
+                        .foregroundColor(.black)
                 } else {
                     Text("Next")
                         .font(.headline)
+                        .foregroundColor(.black)
                 }
             } compactTrailing: {
                 let currentTime = Date()
-                let remainingQATime = context.state.qaTime.timeIntervalSince(currentTime)
-                let remainingRoomChangeTime = context.state.roomChangeTime.timeIntervalSince(currentTime)
+                let remainingQATime = context.state.qaTime.timeIntervalSince(
+                    currentTime
+                )
+                let remainingRoomChangeTime = context.state.roomChangeTime
+                    .timeIntervalSince(currentTime)
                 
-                if remainingQATime > 0 && remainingQATime != remainingRoomChangeTime {
-                    TimerView(endTime: context.state.qaTime, showLabels: false)
-                        .font(.caption2.monospacedDigit())
+                if remainingQATime > 0
+                    && remainingQATime != remainingRoomChangeTime
+                {
+                    
                 } else if remainingRoomChangeTime > 0 {
-                    TimerView(endTime: context.state.roomChangeTime, showLabels: false)
-                        .font(.caption2.monospacedDigit())
+                    
                 }
             } minimal: {
                 let currentTime = Date()
-                let remainingQATime = context.state.qaTime.timeIntervalSince(currentTime)
-                let remainingRoomChangeTime = context.state.roomChangeTime.timeIntervalSince(currentTime)
+                let remainingQATime = context.state.qaTime.timeIntervalSince(
+                    currentTime
+                )
+                let remainingRoomChangeTime = context.state.roomChangeTime
+                    .timeIntervalSince(currentTime)
                 
-                if remainingQATime > 0 && remainingQATime != remainingRoomChangeTime {
-                    Text(timerInterval: Date()...context.state.qaTime, showsHours: true)
-                        .font(.caption2.monospacedDigit())
-                        .frame(width: 40)
+                if remainingQATime > 0
+                    && remainingQATime != remainingRoomChangeTime
+                {
+                    Text(
+                        timerInterval: Date()...context.state.qaTime,
+                        showsHours: true
+                    )
+                    .font(.caption2.monospacedDigit())
+                    .foregroundColor(.black)
+                    .frame(width: 40)
                 } else if remainingRoomChangeTime > 0 {
-                    Text(timerInterval: Date()...context.state.roomChangeTime, showsHours: true)
-                        .font(.caption2.monospacedDigit())
-                        .frame(width: 40)
+                    Text(
+                        timerInterval: Date()...context.state.roomChangeTime,
+                        showsHours: true
+                    )
+                    .font(.caption2.monospacedDigit())
+                    .foregroundColor(.black)
+                    .frame(width: 40)
                 }
             }
-        }
-        .contentMarginsDisabled()
-    }
-}
-
-// Custom timer view component
-struct TimerView: View {
-    let endTime: Date
-    var showLabels: Bool = true
-    
-    var body: some View {
-        HStack(spacing: 4) {
-            if showLabels {
-                VStack {
-                    Text(timerInterval: Date()...endTime, countsDown: true, showsHours: true)
-                        .multilineTextAlignment(.center)
-                        .monospacedDigit()
-                        .foregroundStyle(.cyan)
-                    
-                    Text("remaining")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            } else {
-                Text(timerInterval: Date()...endTime, countsDown: true, showsHours: true)
-                    .multilineTextAlignment(.center)
-                    .monospacedDigit()
-            }
-        }
+        }.contentMarginsDisabled()
     }
 }
 
@@ -176,7 +235,7 @@ struct TimerView: View {
     // Preview with Q&A in 10 minutes
     MyLiveActivityAttributes.MyLiveActivityState(
         endTime: Date().addingTimeInterval(10 * 60),
-        sessionTitle: "Session 101: SwiftUI Basics",
+        sessionTitle: "Session 101: SwiftUI Basics Patrick",
         qaTime: Date().addingTimeInterval(10 * 60),
         roomChangeTime: Date().addingTimeInterval(30 * 60),
         nextTalk: "Session 102: Advanced SwiftUI"
@@ -191,7 +250,6 @@ struct TimerView: View {
         nextTalk: "Session 102: Advanced SwiftUI"
     )
     
-    // Preview with no time left
     MyLiveActivityAttributes.MyLiveActivityState(
         endTime: Date(),
         sessionTitle: "Session 101: SwiftUI Basics",
