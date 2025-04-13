@@ -1,7 +1,5 @@
 export type LiveActivityParams = {
-  customString: string;
-  customNumber: number;
-  eventName: string;
+  sessionTitle: string;
   endTime: string; // ISO string of the end time
   qaTime: string; // ISO string of when Q&A starts
   roomChangeTime: string; // ISO string of when room change happens
@@ -13,5 +11,17 @@ export type StartLiveActivityFn = (
 ) => Promise<{ activityId: string }>;
 
 export type StopLiveActivityFn = () => Promise<void>;
+
+export type UpdateLiveActivityParams = {
+  sessionTitle: string;
+  endTime: string; // ISO string of the end time
+  qaTime: string; // ISO string of when Q&A starts
+  roomChangeTime: string; // ISO string of when room change happens
+  nextTalk?: string;
+};
+
+export type UpdateLiveActivityFn = (
+  params: UpdateLiveActivityParams,
+) => Promise<void>;
 
 export type IsLiveActivityRunningFn = () => boolean;

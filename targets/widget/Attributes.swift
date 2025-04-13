@@ -11,14 +11,11 @@ import SwiftUI
 public struct MyLiveActivityAttributes: ActivityAttributes {
   public struct ContentState: Codable & Hashable {
       var endTime: Date
-      var eventName: String
+      var sessionTitle: String
       var qaTime: Date
       var roomChangeTime: Date
       var nextTalk: String?
   }
 
   public typealias MyLiveActivityState = ContentState
-
-  var customString: String
-  var customNumber: Int
 }

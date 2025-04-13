@@ -1,13 +1,15 @@
 import ActivityKit
 import WidgetKit
 import SwiftUI
+import os
+
+private let log = Logger(subsystem: "com.pycon.volunteers", category: "WidgetLiveActivity")
 
 struct WidgetLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: MyLiveActivityAttributes.self) { context in
-            // Lock screen/banner UI goes here
             VStack(spacing: 12) {
-                Text(context.attributes.customString)
+                Text(context.state.sessionTitle)
                     .font(.headline)
                 
                 VStack(spacing: 4) {
@@ -42,11 +44,14 @@ struct WidgetLiveActivity: Widget {
             .padding()
             .frame(maxWidth: .infinity)
         } dynamicIsland: { context in
-            DynamicIsland {
+            // Log Dynamic Island updates
+            let _ = log.debug("Updating Dynamic Island UI")
+            
+          return DynamicIsland {
                 // Expanded UI goes here
                 DynamicIslandExpandedRegion(.leading) {
                     VStack(alignment: .leading) {
-                        Text(context.attributes.customString)
+                        Text(context.state.sessionTitle)
                             .font(.headline)
                         let currentTime = Date()
                         let remainingQATime = context.state.qaTime.timeIntervalSince(currentTime)
@@ -130,6 +135,7 @@ struct WidgetLiveActivity: Widget {
                 }
             }
         }
+        .contentMarginsDisabled()
     }
 }
 
@@ -163,14 +169,14 @@ struct TimerView: View {
 #Preview(
     "Lockscreen View",
     as: .content,
-    using: MyLiveActivityAttributes(customString: "Session 101", customNumber: 1)
+    using: MyLiveActivityAttributes()
 ) {
     WidgetLiveActivity()
 } contentStates: {
     // Preview with Q&A in 10 minutes
     MyLiveActivityAttributes.MyLiveActivityState(
         endTime: Date().addingTimeInterval(10 * 60),
-        eventName: "Q&A",
+        sessionTitle: "Session 101: SwiftUI Basics",
         qaTime: Date().addingTimeInterval(10 * 60),
         roomChangeTime: Date().addingTimeInterval(30 * 60),
         nextTalk: "Session 102: Advanced SwiftUI"
@@ -179,7 +185,7 @@ struct TimerView: View {
     // Preview with room change in 5 minutes
     MyLiveActivityAttributes.MyLiveActivityState(
         endTime: Date().addingTimeInterval(5 * 60),
-        eventName: "Room Change",
+        sessionTitle: "Session 101: SwiftUI Basics",
         qaTime: Date(),
         roomChangeTime: Date().addingTimeInterval(5 * 60),
         nextTalk: "Session 102: Advanced SwiftUI"
@@ -188,7 +194,7 @@ struct TimerView: View {
     // Preview with no time left
     MyLiveActivityAttributes.MyLiveActivityState(
         endTime: Date(),
-        eventName: "Next Talk",
+        sessionTitle: "Session 101: SwiftUI Basics",
         qaTime: Date(),
         roomChangeTime: Date(),
         nextTalk: "Session 102: Advanced SwiftUI"

@@ -17,6 +17,7 @@ import { isLiveActivityRunning } from '@/modules/activity-controller';
 import {
   startLiveActivity,
   stopLiveActivity,
+  updateLiveActivity,
 } from '@/modules/activity-controller';
 
 export const SPEAKERS_FRAGMENT = graphql(
@@ -331,15 +332,26 @@ export default function SessionPage() {
         return date.toISOString().split('.')[0] + 'Z';
       };
 
-      startLiveActivity({
-        customString: talk.title,
-        customNumber: 1,
-        eventName: 'Q&A',
-        endTime: formatDate(endTime),
-        qaTime: formatDate(qaTime),
-        roomChangeTime: formatDate(roomChangeTime),
-        nextTalk: nextSession?.session.title,
-      });
+      // Check if a Live Activity is already running
+      if (isLiveActivityRunning()) {
+        // Update the existing activity
+        await updateLiveActivity({
+          sessionTitle: talk.title,
+          endTime: formatDate(endTime),
+          qaTime: formatDate(qaTime),
+          roomChangeTime: formatDate(roomChangeTime),
+          nextTalk: nextSession?.session.title,
+        });
+      } else {
+        // Start a new activity
+        await startLiveActivity({
+          sessionTitle: talk.title,
+          endTime: formatDate(endTime),
+          qaTime: formatDate(qaTime),
+          roomChangeTime: formatDate(roomChangeTime),
+          nextTalk: nextSession?.session.title,
+        });
+      }
 
       await Notifications.scheduleNotificationAsync({
         content: {
