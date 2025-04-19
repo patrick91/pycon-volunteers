@@ -20,6 +20,8 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import { onError } from '@apollo/client/link/error';
+import { persistCache, AsyncStorageWrapper } from 'apollo3-cache-persist';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import '../global.css';
 import { NowProvider } from '@/components/timer/context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -45,8 +47,25 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
     }
   });
 
+  const cache = new InMemoryCache();
+
+  // Initialize cache persistence
+  useEffect(() => {
+    const initCache = async () => {
+      await persistCache({
+        cache,
+        storage: new AsyncStorageWrapper(AsyncStorage),
+        // Optional: Add any specific options here
+        // maxSize: 1048576, // 1MB
+        // debug: __DEV__,
+      });
+    };
+
+    initCache();
+  }, [cache]);
+
   const client = new ApolloClient({
-    cache: new InMemoryCache(),
+    cache,
     link: errorLink.concat(
       new HttpLink({
         uri: 'https://2025.pycon.it/graphql',
