@@ -4,14 +4,22 @@ import { Link, useLocalSearchParams, Stack } from 'expo-router';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { Timer } from '@/components/timer';
+import { useFeatureFlag } from 'posthog-react-native';
 
 import { useSchedule } from '@/hooks/use-schedule';
 import { parseISO, isAfter, isEqual } from 'date-fns';
 import { SessionItem } from '@/components/session-item';
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import * as Notifications from 'expo-notifications';
+import { useEffect, useState } from 'react';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import { useTalkConfiguration } from '@/context/talk-configuration';
+import { isLiveActivityRunning } from '@/modules/activity-controller';
+import {
+  startLiveActivity,
+  stopLiveActivity,
+  updateLiveActivity,
+} from '@/modules/activity-controller';
 
 export const SPEAKERS_FRAGMENT = graphql(
   `fragment SpeakersFragment on ScheduleItem {
@@ -154,17 +162,13 @@ const SectionButton = ({ title }: { title: string }) => {
   );
 };
 
-function UpNextView({
-  current,
-}: {
-  current: {
-    start: string;
-    end: string;
-    rooms: {
-      name: string;
-    }[];
-  };
-}) {
+const useNextSession = (current: {
+  start: string;
+  end: string;
+  rooms: {
+    name: string;
+  }[];
+}) => {
   // TODO: get the day from the session
   const { schedule } = useSchedule(1);
 
@@ -187,6 +191,22 @@ function UpNextView({
       isAfter(sessionStart, currentEnd) || isEqual(sessionStart, currentEnd)
     );
   });
+
+  return nextSession;
+};
+
+function UpNextView({
+  current,
+}: {
+  current: {
+    start: string;
+    end: string;
+    rooms: {
+      name: string;
+    }[];
+  };
+}) {
+  const nextSession = useNextSession(current);
 
   if (!nextSession) {
     return null;
@@ -244,20 +264,124 @@ function TalkConfigurationView({ talk }: { talk: { id: string } }) {
   );
 }
 
+import * as TaskManager from 'expo-task-manager';
+
+const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
+
+TaskManager.defineTask(
+  BACKGROUND_NOTIFICATION_TASK,
+  async ({ data, error, executionInfo }) => {
+    console.log('Received a notification in the background!');
+    // Do something with the notification data
+  },
+);
+
+Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+Notifications.addNotificationReceivedListener((notification) => {
+  console.log('Received a notification in the foreground!');
+  // Do something with the notification data
+});
+
 export default function SessionPage() {
   const slug = useLocalSearchParams().slug as string;
   const code = 'pycon2025';
   const language = 'en';
+  const enableLiveActivity = useFeatureFlag('enable-live-activity');
 
   const { data } = useSuspenseQuery(TALK_QUERY, {
     variables: { slug, code, language },
   });
 
-  if (!data.conference.talk) {
-    return <Text>Talk not found</Text>;
+  const { talk } = data.conference;
+
+  if (!talk) {
+    throw new Error('Talk not found');
   }
 
-  const talk = data.conference.talk;
+  const [activityIsRunning, setActivityIsRunning] = useState(
+    () => isLiveActivityRunning,
+  );
+
+  const handleStopLiveActivity = () => {
+    stopLiveActivity();
+  };
+
+  const nextSession = useNextSession(talk);
+
+  useEffect(() => {
+    if (enableLiveActivity === undefined) {
+      return;
+    }
+
+    if (!enableLiveActivity) {
+      console.log('Live activity is disabled');
+
+      return;
+    }
+
+    console.log('Live activity is enabled');
+
+    const setupNotifications = async () => {
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        console.log('Failed to get push token for push notification!');
+        return;
+      }
+
+      const now = new Date();
+      const endTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes from now
+      const qaTime = new Date(now.getTime() + 0.5 * 60 * 1000); // 1 minute from now
+      const roomChangeTime = new Date(now.getTime() + 1 * 60 * 1000); // 2 minutes from now
+
+      // Ensure dates are properly formatted as ISO strings
+      const formatDate = (date: Date) => {
+        return `${date.toISOString().split('.')[0]}Z`;
+      };
+
+      // Check if a Live Activity is already running
+      if (isLiveActivityRunning()) {
+        // Update the existing activity
+        await updateLiveActivity({
+          sessionTitle: talk.title,
+          endTime: formatDate(endTime),
+          qaTime: formatDate(qaTime),
+          roomChangeTime: formatDate(roomChangeTime),
+          nextTalk: nextSession?.session.title,
+        });
+      } else {
+        // Start a new activity
+        await startLiveActivity({
+          sessionTitle: talk.title,
+          endTime: formatDate(endTime),
+          qaTime: formatDate(qaTime),
+          roomChangeTime: formatDate(roomChangeTime),
+          nextTalk: nextSession?.session.title,
+        });
+      }
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          data: {
+            talkId: talk.id,
+          },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: 2,
+        },
+      });
+    };
+
+    setupNotifications();
+  }, [talk.id, talk.title, nextSession?.session.title, enableLiveActivity]);
 
   return (
     <ScrollView
