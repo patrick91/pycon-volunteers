@@ -4,6 +4,7 @@ import { Link, useLocalSearchParams, Stack } from 'expo-router';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { Timer } from '@/components/timer';
+import { useFeatureFlag } from 'posthog-react-native';
 
 import { useSchedule } from '@/hooks/use-schedule';
 import { parseISO, isAfter, isEqual } from 'date-fns';
@@ -285,6 +286,7 @@ export default function SessionPage() {
   const slug = useLocalSearchParams().slug as string;
   const code = 'pycon2025';
   const language = 'en';
+  const enableLiveActivity = useFeatureFlag('enable-live-activity');
 
   const { data } = useSuspenseQuery(TALK_QUERY, {
     variables: { slug, code, language },
@@ -307,6 +309,18 @@ export default function SessionPage() {
   const nextSession = useNextSession(talk);
 
   useEffect(() => {
+    if (enableLiveActivity === undefined) {
+      return;
+    }
+
+    if (!enableLiveActivity) {
+      console.log('Live activity is disabled');
+
+      return;
+    }
+
+    console.log('Live activity is enabled');
+
     const setupNotifications = async () => {
       const { status: existingStatus } =
         await Notifications.getPermissionsAsync();
@@ -329,7 +343,7 @@ export default function SessionPage() {
 
       // Ensure dates are properly formatted as ISO strings
       const formatDate = (date: Date) => {
-        return date.toISOString().split('.')[0] + 'Z';
+        return `${date.toISOString().split('.')[0]}Z`;
       };
 
       // Check if a Live Activity is already running
@@ -367,7 +381,7 @@ export default function SessionPage() {
     };
 
     setupNotifications();
-  }, [talk.id, talk.title, nextSession?.session.title]);
+  }, [talk.id, talk.title, nextSession?.session.title, enableLiveActivity]);
 
   return (
     <ScrollView
