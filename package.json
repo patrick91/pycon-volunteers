@@ -17,7 +17,7 @@
   "dependencies": {
     "@apollo/client": "^3.12.8",
     "@bacons/apple-targets": "^0.2.1",
-    "@expo/vector-icons": "^14.0.2",
+    "@expo/vector-icons": "^14.1.0",
     "@hookform/resolvers": "^3.10.0",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-menu/menu": "1.2.2",

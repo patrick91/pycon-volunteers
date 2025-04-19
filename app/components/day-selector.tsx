@@ -2,6 +2,7 @@ import * as DropdownMenu from 'zeego/dropdown-menu';
 import { Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import Feather from '@expo/vector-icons/Feather';
 
 const DAYS = [
   { id: 'day1', label: 'Day 1' },
@@ -17,14 +18,7 @@ export function DaySelector() {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
-        <View
-          style={{
-            padding: 8,
-            backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-            borderRadius: 8,
-            marginRight: 8,
-          }}
-        >
+        <View className="flex-row items-center justify-center h-12 relative">
           <Text
             style={{
               fontSize: 16,
@@ -32,8 +26,14 @@ export function DaySelector() {
               color: isDark ? '#fff' : '#000',
             }}
           >
-            Select Day
+            28 Apr 2025
           </Text>
+          <Feather
+            name="chevron-down"
+            size={22}
+            color="black"
+            className="absolute right-[-24px]"
+          />
         </View>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>

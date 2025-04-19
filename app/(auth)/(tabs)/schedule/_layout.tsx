@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { DaySelector } from '../../../components/day-selector';
+import { View } from 'react-native';
 
 export default function ScheduleLayout() {
   return (
@@ -8,7 +9,11 @@ export default function ScheduleLayout() {
         name="index"
         options={{
           title: 'Schedule',
-          headerRight: () => <DaySelector />,
+          headerTitle: () => (
+            <View className="flex-1 flex flex-row justify-center items-center">
+              <DaySelector />
+            </View>
+          ),
         }}
       />
       <Stack.Screen
