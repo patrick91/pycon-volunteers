@@ -4,6 +4,7 @@ import { SessionItem } from '@/components/session-item';
 import { Link } from 'expo-router';
 import { parseISO } from 'date-fns';
 import type { Item } from '@/components/session-item';
+import clsx from 'clsx';
 
 export function ScheduleListView() {
   const { schedule } = useSchedule(1);
@@ -49,7 +50,10 @@ export function ScheduleListView() {
   );
 
   return (
-    <ScrollView className="flex-1 bg-[#FAF5F3]">
+    <ScrollView
+      className="flex-1 bg-[#FAF5F3]"
+      contentContainerClassName="pb-[86px]"
+    >
       {sortedTimeSlots.map((slot, index) => (
         <View key={slot.time.toISOString()} className="border-b-2 border-black">
           <View className="bg-white p-4 border-b-2 border-black">
@@ -60,13 +64,14 @@ export function ScheduleListView() {
               })}
             </Text>
           </View>
-          {slot.sessions.map((session) => (
-            <Link
-              key={session.id}
-              href={`/schedule/${session.slug}`}
-              className="border-b border-gray-200 last:border-b-0"
-            >
-              <View className="p-4 bg-[#FCE8DE]">
+          {slot.sessions.map((session, index) => (
+            <Link key={session.id} href={`/schedule/${session.slug}`}>
+              <View
+                className={clsx('p-4 bg-[#FCE8DE] w-full  border-black', {
+                  'border-b-2': index !== slot.sessions.length - 1,
+                  'border-b-0': index === slot.sessions.length - 1,
+                })}
+              >
                 <SessionItem session={session} />
               </View>
             </Link>
