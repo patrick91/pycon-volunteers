@@ -18,7 +18,7 @@ export function DaySelector() {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
-        <View className="flex-row items-center justify-center h-12 relative">
+        <View className="flex-row items-center justify-center h-12 gap-1 mr-[-24px]">
           <Text
             style={{
               fontSize: 16,
@@ -28,12 +28,7 @@ export function DaySelector() {
           >
             28 Apr 2025
           </Text>
-          <Feather
-            name="chevron-down"
-            size={22}
-            color="black"
-            className="absolute right-[-24px]"
-          />
+          <Feather name="chevron-down" size={22} color="black" />
         </View>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
