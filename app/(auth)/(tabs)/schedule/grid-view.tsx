@@ -1,13 +1,15 @@
 import { clsx } from 'clsx';
 import { View, Text, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { useSchedule } from '@/hooks/use-schedule';
 import { SessionItem } from '@/components/session-item';
 import { Link } from 'expo-router';
+import type { DaySchedule } from '@/hooks/use-schedule';
 
-export function ScheduleGridView() {
-  const { schedule } = useSchedule(1);
-
+export function ScheduleGridView({
+  schedule,
+}: {
+  schedule: DaySchedule;
+}) {
   const listOfRoomsAndSessions = schedule.rooms.flatMap((room) => {
     return [room.name, room.sessions];
   });

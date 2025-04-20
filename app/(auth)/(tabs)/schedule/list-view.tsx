@@ -1,14 +1,15 @@
 import { View, Text, ScrollView } from 'react-native';
-import { useSchedule } from '@/hooks/use-schedule';
-import { SessionItem } from '@/components/session-item';
+import type { DaySchedule } from '@/hooks/use-schedule';
+import { SessionItem, type Item } from '@/components/session-item';
 import { Link } from 'expo-router';
 import { parseISO } from 'date-fns';
-import type { Item } from '@/components/session-item';
 import clsx from 'clsx';
 
-export function ScheduleListView() {
-  const { schedule } = useSchedule(1);
-
+export function ScheduleListView({
+  schedule,
+}: {
+  schedule: DaySchedule;
+}) {
   // Group sessions by time
   const sessionsByTime = schedule.rooms.reduce(
     (acc, room) => {

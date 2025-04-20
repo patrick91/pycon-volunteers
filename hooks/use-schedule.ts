@@ -2,6 +2,7 @@ import { graphql, readFragment, type ResultOf } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
 
 import { ITEM_FRAGMENT, type Item } from '@/components/session-item';
+import { parseISO, format, isSameDay } from 'date-fns';
 
 type ItemWithDuration = Omit<Item, 'duration'> & { duration: number };
 
@@ -82,8 +83,11 @@ const SCHEDULE_QUERY = graphql(
   [ITEM_FRAGMENT],
 );
 
-function getDailySchedule(data: ResultOf<typeof SCHEDULE_QUERY>, day: number) {
-  const { slots, rooms: dayRooms } = data.conference.days[day];
+function getDailySchedule(data: ResultOf<typeof SCHEDULE_QUERY>, day: Date) {
+  // biome-ignore lint/style/noNonNullAssertion: this is guaranteed to exist
+  const { slots, rooms: dayRooms } = data.conference.days.find((d) =>
+    isSameDay(parseISO(d.day), day),
+  )!;
 
   const daySlots: { [key: string]: Slot } = {};
 
@@ -215,10 +219,24 @@ function getDailySchedule(data: ResultOf<typeof SCHEDULE_QUERY>, day: number) {
   return { rooms, roomTitleIndices, scheduleSize };
 }
 
-export const useSchedule = (day: number) => {
+export type DaySchedule = ReturnType<typeof getDailySchedule>;
+
+export const useSchedule = () => {
   const { data } = useSuspenseQuery(SCHEDULE_QUERY);
 
-  const schedule = getDailySchedule(data, day);
+  const days = data.conference.days.map((day) => ({
+    label: format(parseISO(day.day), 'dd MMM yyyy'),
+    id: day.day,
+    day: parseISO(day.day),
+    dayString: day.day,
+  }));
 
-  return { schedule };
+  const schedule: Record<string, DaySchedule> = Object.fromEntries(
+    days.map((day) => [day.dayString, getDailySchedule(data, day.day)]),
+  );
+
+  return {
+    schedule,
+    days,
+  };
 };

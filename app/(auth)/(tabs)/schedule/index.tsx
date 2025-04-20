@@ -4,9 +4,16 @@ import { ScheduleListView } from './list-view';
 import { Stack } from 'expo-router';
 import { DaySelector } from '@/app/components/day-selector';
 import { useState } from 'react';
+import { useSchedule } from '@/hooks/use-schedule';
 
 export default function SchedulePage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  const [day, setDay] = useState('2025-05-28');
+
+  const { days, schedule } = useSchedule();
+
+  const daySchedule = schedule[day];
 
   return (
     <View className="flex-1">
@@ -15,7 +22,11 @@ export default function SchedulePage() {
           title: 'Schedule',
           headerTitle: () => (
             <View className="flex-1 flex flex-row justify-center items-center">
-              <DaySelector />
+              <DaySelector
+                days={days}
+                onDayChange={(day) => setDay(day)}
+                selectedDay={day}
+              />
             </View>
           ),
           headerRight: () => (
@@ -52,7 +63,11 @@ export default function SchedulePage() {
           ),
         }}
       />
-      {viewMode === 'grid' ? <ScheduleGridView /> : <ScheduleListView />}
+      {viewMode === 'grid' ? (
+        <ScheduleGridView schedule={daySchedule} />
+      ) : (
+        <ScheduleListView schedule={daySchedule} />
+      )}
     </View>
   );
 }

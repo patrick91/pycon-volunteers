@@ -5,6 +5,7 @@ export const graphql = initGraphQLTada<{
   introspection: introspection;
   scalars: {
     DateTime: string;
+    Date: string;
     // biome-ignore lint/suspicious/noExplicitAny: this is fine
     JSON: any;
     Time: string;
