@@ -11,7 +11,7 @@ import { parseISO, isAfter, isEqual } from 'date-fns';
 import { SessionItem } from '@/components/session-item';
 import { Image } from 'expo-image';
 import * as Notifications from 'expo-notifications';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import { useTalkConfiguration } from '@/context/talk-configuration';
 import { isLiveActivityRunning } from '@/modules/activity-controller';
@@ -285,7 +285,7 @@ Notifications.addNotificationReceivedListener((notification) => {
   // Do something with the notification data
 });
 
-export default function SessionPage() {
+export function Session() {
   const slug = useLocalSearchParams().slug as string;
   const code = 'pycon2025';
   const language = 'en';
@@ -419,5 +419,69 @@ export default function SessionPage() {
 
       <UpNextView current={talk} />
     </ScrollView>
+  );
+}
+
+function Skeleton() {
+  return (
+    <View className="flex-1">
+      <Stack.Screen options={{ title: 'Loading...' }} />
+
+      <View className="border-b-2">
+        <View className="h-16 bg-gray-200" />
+      </View>
+
+      {/* Speakers skeleton */}
+      <View className="border-b-2">
+        {[1, 2].map((i) => (
+          <View key={i} className="flex-row gap-2 pr-4 border-b-2">
+            <View className="border-r-2">
+              <View className="w-20 h-20 bg-gray-200" />
+            </View>
+            <View className="flex-1 py-2">
+              <View className="h-6 w-1/2 bg-gray-200 rounded mb-2" />
+              <View className="h-4 w-3/4 bg-gray-200 rounded" />
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {/* Talk Configuration skeleton */}
+      <View className="border-b-2 pb-4 pt-4 px-4">
+        <View className="h-8 w-1/2 bg-gray-200 rounded" />
+      </View>
+
+      {/* Elevator Pitch skeleton */}
+      <View className="mb-4 px-4 mt-4">
+        <View className="h-8 w-1/3 bg-gray-200 rounded mb-4" />
+        <View className="h-4 w-full bg-gray-200 rounded mb-2" />
+        <View className="h-4 w-5/6 bg-gray-200 rounded mb-2" />
+        <View className="h-4 w-4/6 bg-gray-200 rounded" />
+      </View>
+
+      {/* Section buttons skeleton */}
+      <View className="flex-row gap-2 px-4 flex-1">
+        <View className="h-12 flex-1 bg-gray-200 rounded" />
+        <View className="h-12 flex-1 bg-gray-200 rounded" />
+        <View className="h-12 flex-1 bg-gray-200 rounded" />
+      </View>
+
+      {/* Up Next skeleton */}
+      <View className="px-4 mt-4 border-t-2 pt-4 gap-2">
+        <View className="h-8 w-1/4 bg-gray-200 rounded mb-2" />
+        <View className="border-2 border-black p-3 min-h-[110px] bg-gray-100 w-full">
+          <View className="h-6 w-3/4 bg-gray-200 rounded mb-2" />
+          <View className="h-4 w-1/2 bg-gray-200 rounded" />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+export default function SessionPage() {
+  return (
+    <Suspense fallback={<Skeleton />}>
+      <Session />
+    </Suspense>
   );
 }
