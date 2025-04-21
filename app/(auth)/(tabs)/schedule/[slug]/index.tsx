@@ -170,11 +170,17 @@ const useNextSession = (current: {
   }[];
 }) => {
   // TODO: get the day from the session
-  const { schedule } = useSchedule(1);
+  console.log(current);
+
+  const { schedule } = useSchedule();
+
+  const dayString = current.start.split('T')[0];
+
+  const day = schedule[dayString];
 
   const currentRoom = current.rooms[0].name;
 
-  const room = schedule.rooms.find(
+  const room = day.rooms.find(
     (room) => !(room instanceof String) && room.name === currentRoom,
   );
 
