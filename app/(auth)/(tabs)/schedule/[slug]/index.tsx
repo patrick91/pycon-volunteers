@@ -169,9 +169,6 @@ const useNextSession = (current: {
     name: string;
   }[];
 }) => {
-  // TODO: get the day from the session
-  console.log(current);
-
   const { schedule } = useSchedule();
 
   const dayString = current.start.split('T')[0];

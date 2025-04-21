@@ -7,7 +7,7 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import { SessionProvider } from '@/context/auth';
 import {
@@ -20,19 +20,20 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import { onError } from '@apollo/client/link/error';
-import { persistCache, AsyncStorageWrapper } from 'apollo3-cache-persist';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persistCache } from 'apollo3-cache-persist';
+import { SQLiteEntityWrapper } from '@/lib/sqlite-wrapper';
 import '../global.css';
 import { NowProvider } from '@/components/timer/context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TalkConfigurationProvider } from '@/context/talk-configuration';
-import { usePostHog, PostHogProvider } from 'posthog-react-native';
+import { PostHogProvider } from 'posthog-react-native';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 const APIProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
+  const [client, setClient] = useState<ApolloClient<any> | null>(null);
 
   const errorLink = onError(({ graphQLErrors }) => {
     if (graphQLErrors) {
@@ -47,32 +48,43 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
     }
   });
 
-  const cache = new InMemoryCache();
-
-  // Initialize cache persistence
+  // Initialize cache persistence and create Apollo client
   useEffect(() => {
     const initCache = async () => {
-      await persistCache({
-        cache,
-        storage: new AsyncStorageWrapper(AsyncStorage),
-        // Optional: Add any specific options here
-        // maxSize: 1048576, // 1MB
-        // debug: __DEV__,
-      });
+      const cache = new InMemoryCache();
+      console.log('[Apollo] Initializing cache persistence');
+
+      try {
+        await persistCache({
+          cache,
+          storage: new SQLiteEntityWrapper(),
+          debug: __DEV__,
+        });
+        console.log('[Apollo] Cache persistence initialized');
+
+        const apolloClient = new ApolloClient({
+          cache,
+          link: errorLink.concat(
+            new HttpLink({
+              uri: 'https://2025.pycon.it/graphql',
+              credentials: 'include',
+            }),
+          ),
+        });
+
+        setClient(apolloClient);
+        console.log('[Apollo] Client created and initialized');
+      } catch (error) {
+        console.error('[Apollo] Error initializing cache:', error);
+      }
     };
 
     initCache();
-  }, [cache]);
+  }, []);
 
-  const client = new ApolloClient({
-    cache,
-    link: errorLink.concat(
-      new HttpLink({
-        uri: 'https://2025.pycon.it/graphql',
-        credentials: 'include',
-      }),
-    ),
-  });
+  if (!client) {
+    return null; // or a loading spinner
+  }
 
   return <ApolloProvider client={client}>{children}</ApolloProvider>;
 };

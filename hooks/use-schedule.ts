@@ -61,6 +61,7 @@ const SCHEDULE_QUERY = graphql(
   `
   query Schedule {
     conference(code: "pycon2025") {
+      id
       days {
         rooms {
           id

@@ -39,7 +39,7 @@ const ProfileInfo = ({
 export default function Profile() {
   const { data } = useSuspenseQuery(USER_PROFILE_QUERY);
   const { signOut } = useSession();
-  console.log(data);
+
   return (
     <View className="flex-1 bg-white">
       <Text>Profile</Text>
