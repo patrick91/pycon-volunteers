@@ -87,6 +87,18 @@ function SpeakersView({
   );
 }
 
+function AbstractButton({ abstract }: { abstract: string }) {
+  return (
+    <Link
+      href="./abstract"
+      relativeToDirectory
+      className="bg-[#FCE8DE] p-4 border-2 border-black"
+    >
+      <Text className="text-black text-lg font-bold">Abstract</Text>
+    </Link>
+  );
+}
+
 const TALK_QUERY = graphql(
   `query Talk($slug: String!, $code: String!, $language: String!) {
     conference(code: $code) {
@@ -406,15 +418,13 @@ export function Session() {
 
       <TalkConfigurationView talk={talk} />
 
-      <View className="mb-4 px-4 mt-4">
+      <View className="px-4 mt-4">
         <Text className="text-2xl font-bold">Elevator Pitch</Text>
         <Markdown>{talk.elevatorPitch}</Markdown>
       </View>
 
-      <View className="flex-row gap-2 px-4 flex-1">
-        <SectionButton title="Abstract" />
-        <SectionButton title="Checklist" />
-        <SectionButton title="Notes" />
+      <View className="px-4 mt-4 flex-row gap-2">
+        <AbstractButton abstract={talk.abstract} />
       </View>
 
       <UpNextView current={talk} />

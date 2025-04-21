@@ -15,6 +15,14 @@ export default function ScheduleLayout() {
           presentation: 'modal',
         }}
       />
+      <Stack.Screen
+        name="[slug]/abstract"
+        options={{
+          title: 'Abstract',
+          headerBackButtonDisplayMode: 'minimal',
+          presentation: 'modal',
+        }}
+      />
     </Stack>
   );
 }
