@@ -30,9 +30,10 @@ export type Item = ResultOf<typeof ITEM_FRAGMENT>;
 
 type SessionItemProps = {
   session: Item;
+  variant?: 'list' | 'grid';
 };
 
-export function SessionItem({ session }: SessionItemProps) {
+export function SessionItem({ session, variant = 'grid' }: SessionItemProps) {
   const start = new Date(session.start);
   const formattedStart = start.toLocaleTimeString('en-GB', {
     hour: '2-digit',
@@ -46,10 +47,19 @@ export function SessionItem({ session }: SessionItemProps) {
 
   return (
     <View className="flex-1">
-      <Text className="font-sans-semibold" numberOfLines={2}>
+      <Text
+        className={clsx('font-sans-semibold', {
+          'text-xl': variant === 'list',
+        })}
+        numberOfLines={2}
+      >
         {session.title}
       </Text>
-      <Text className="font-sans">
+      <Text
+        className={clsx('font-sans', {
+          'mb-4': variant === 'list',
+        })}
+      >
         {formattedStart} - {formattedEnd}
       </Text>
 
@@ -73,7 +83,7 @@ export function SessionItem({ session }: SessionItemProps) {
             ))}
           </View>
 
-          <Text className="font-sans-semibold">
+          <Text className="font-sans-semibold flex-1">
             {session.speakers.map((speaker) => speaker.fullName).join(', ')}
           </Text>
         </View>

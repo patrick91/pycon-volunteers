@@ -73,7 +73,7 @@ export function ScheduleListView({
                   'border-b-0': index === slot.sessions.length - 1,
                 })}
               >
-                <SessionItem session={session} />
+                <SessionItem session={session} variant="list" />
               </View>
             </Link>
           ))}
