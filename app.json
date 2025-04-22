@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "it.pycon.conference",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
