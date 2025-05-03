@@ -1,22 +1,34 @@
-import { useContext, createContext, type PropsWithChildren } from 'react';
+import {
+  useContext,
+  createContext,
+  type PropsWithChildren,
+  useEffect,
+} from 'react';
 import { useStorageState } from '@/hooks/use-storage-state';
 import { useRouter } from 'expo-router';
+import { usePostHog } from 'posthog-react-native';
+import { graphql } from '@/graphql';
+import { useMutation } from '@apollo/client';
+
 type User = {
   id: string;
   email: string;
+  fullName: string;
   conferenceRoles: string[];
 };
 
 const AuthContext = createContext<{
   signIn: (user: User) => void;
   signOut: () => void;
-  session?: string | null;
+  user: User | null;
   isLoading: boolean;
+  isSigningOut: boolean;
 }>({
   signIn: () => null,
   signOut: () => null,
-  session: null,
+  user: null,
   isLoading: false,
+  isSigningOut: false,
 });
 
 // This hook can be used to access the user info.
@@ -31,28 +43,65 @@ export function useSession() {
   return value;
 }
 
-export function SessionProvider({ children }: PropsWithChildren) {
-  let [[isLoading, session], setSession] = useStorageState('session');
+const SIGN_OUT_MUTATION = graphql(`
+  mutation SignOut {
+    logout {
+      ok
+    }
+  }
+`);
 
-  session = session ? JSON.parse(session) : null;
+export function SessionProvider({
+  children,
+  onSignOut,
+}: PropsWithChildren<{ onSignOut: () => void }>) {
+  const [[isLoading, sessionData], setSession] = useStorageState('session');
+  const [signOut, { loading: isSigningOut }] = useMutation(SIGN_OUT_MUTATION);
 
-  console.log('session', session);
+  const posthog = usePostHog();
+
+  const session = sessionData ? (JSON.parse(sessionData) as User) : null;
+
+  useEffect(() => {
+    if (session) {
+      console.log('[Auth] Identifying user', session);
+
+      posthog.identify(session.id, {
+        email: session.email,
+        name: session.fullName,
+        conferenceRoles: session.conferenceRoles,
+      });
+    } else {
+      posthog.reset();
+    }
+
+    posthog.reloadFeatureFlagsAsync().then((a) => {
+      console.log(posthog.getDistinctId());
+      console.log('[Auth] Reloaded feature flags', a);
+    });
+  }, [session, posthog]);
 
   const router = useRouter();
-
   return (
     <AuthContext.Provider
       value={{
         signIn: (user: User) => {
-          console.log('signIn', user);
           setSession(JSON.stringify(user));
         },
-        signOut: () => {
+        signOut: async () => {
+          await signOut();
+
           setSession(null);
+
           router.push('/sign-in');
+
+          onSignOut();
+
+          posthog.reset();
         },
-        session,
         isLoading,
+        isSigningOut,
+        user: session,
       }}
     >
       {children}

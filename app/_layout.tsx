@@ -9,19 +9,24 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SessionProvider } from '@/context/auth';
 import {
   ApolloClient,
   InMemoryCache,
   ApolloProvider,
   HttpLink,
+  NormalizedCacheObject,
 } from '@apollo/client';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import { onError } from '@apollo/client/link/error';
-import { persistCache } from 'apollo3-cache-persist';
-import { SQLiteEntityWrapper } from '@/lib/sqlite-wrapper';
+import {
+  AsyncStorageWrapper,
+  persistCache,
+  CachePersistor,
+} from 'apollo3-cache-persist';
 import '../global.css';
 import { NowProvider } from '@/components/timer/context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -49,19 +54,24 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
     }
   });
 
+  const [persistor, setPersistor] =
+    useState<CachePersistor<NormalizedCacheObject>>();
+
   // Initialize cache persistence and create Apollo client
+  // biome-ignore lint/correctness/useExhaustiveDependencies: not needed
   useEffect(() => {
     const initCache = async () => {
       const cache = new InMemoryCache();
       console.log('[Apollo] Initializing cache persistence');
 
       try {
-        await persistCache({
-          cache,
-          storage: new SQLiteEntityWrapper(),
-          debug: __DEV__,
-        });
-        console.log('[Apollo] Cache persistence initialized');
+        // const persistor = new CachePersistor({
+        //   cache,
+        //   storage: new AsyncStorageWrapper(AsyncStorage),
+        //   debug: __DEV__,
+        // });
+
+        // await persistor.restore();
 
         const apolloClient = new ApolloClient({
           cache,
@@ -73,6 +83,7 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
           ),
         });
 
+        // setPersistor(persistor);
         setClient(apolloClient);
         console.log('[Apollo] Client created and initialized');
       } catch (error) {
@@ -87,7 +98,21 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
     return null; // or a loading spinner
   }
 
-  return <ApolloProvider client={client}>{children}</ApolloProvider>;
+  return (
+    <ApolloProvider client={client}>
+      <SessionProvider
+        onSignOut={() => {
+          console.log('[Apollo] Signing out');
+
+          persistor?.remove();
+          persistor?.purge();
+          client.resetStore();
+        }}
+      >
+        {children}
+      </SessionProvider>
+    </ApolloProvider>
+  );
 };
 
 if (__DEV__) {
@@ -119,6 +144,8 @@ export default function RootLayout() {
       options={{
         host: 'https://eu.i.posthog.com',
         enableSessionReplay: true,
+        preloadFeatureFlags: true,
+        persistence: 'memory',
         sessionReplayConfig: {
           // Whether text inputs are masked. Default is true.
           // Password inputs are always masked regardless
@@ -145,26 +172,24 @@ export default function RootLayout() {
           <BottomSheetModalProvider>
             <NowProvider>
               <KeyboardProvider>
-                <SessionProvider>
-                  <TalkConfigurationProvider>
-                    <ThemeProvider
-                      value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
-                    >
-                      <Stack>
-                        <Stack.Screen
-                          name="(auth)"
-                          options={{ headerShown: false }}
-                        />
-                        <Stack.Screen
-                          name="sign-in"
-                          options={{ headerShown: false }}
-                        />
-                        <Stack.Screen name="+not-found" />
-                      </Stack>
-                      <StatusBar style="auto" />
-                    </ThemeProvider>
-                  </TalkConfigurationProvider>
-                </SessionProvider>
+                <TalkConfigurationProvider>
+                  <ThemeProvider
+                    value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+                  >
+                    <Stack>
+                      <Stack.Screen
+                        name="(auth)"
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="sign-in"
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen name="+not-found" />
+                    </Stack>
+                    <StatusBar style="auto" />
+                  </ThemeProvider>
+                </TalkConfigurationProvider>
               </KeyboardProvider>
             </NowProvider>
           </BottomSheetModalProvider>

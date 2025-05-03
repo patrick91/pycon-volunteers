@@ -2,7 +2,8 @@ import { View, Text, SafeAreaView } from 'react-native';
 import { graphql, readFragment, type FragmentOf } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
 import { useSession } from '@/context/auth';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/form/button';
+import { usePostHog } from 'posthog-react-native';
 
 export const USER_PROFILE_FRAGMENT = graphql(`
   fragment UserProfile on User {
@@ -27,7 +28,8 @@ const USER_PROFILE_QUERY = graphql(
 const ProfileInfo = ({
   data,
 }: { data: FragmentOf<typeof USER_PROFILE_FRAGMENT> }) => {
-  const { signOut } = useSession();
+  const { signOut, isSigningOut } = useSession();
+  const posthog = usePostHog();
 
   const { fullName, email, conferenceRoles } = readFragment(
     USER_PROFILE_FRAGMENT,
@@ -50,9 +52,22 @@ const ProfileInfo = ({
         </Text>
       </View>
 
-      <Button className="mt-4" onPress={() => signOut()}>
-        Sign Out
-      </Button>
+      {conferenceRoles.includes('STAFF') && (
+        <View className="flex gap-2 mt-4">
+          <Text className="font-bold">Feature Flags</Text>
+          <Text>{JSON.stringify(posthog.getFeatureFlags())}</Text>
+        </View>
+      )}
+
+      <View className="mt-4">
+        <Button
+          onPress={() => signOut()}
+          disabled={isSigningOut}
+          loading={isSigningOut}
+        >
+          Sign Out
+        </Button>
+      </View>
     </View>
   );
 };

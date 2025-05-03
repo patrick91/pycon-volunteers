@@ -13,7 +13,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/form/button';
 import { graphql, readFragment } from '@/graphql';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Logo } from '@/components/logo';
@@ -151,6 +151,8 @@ export default function SignIn() {
                     secureTextEntry
                     onChangeText={onChange}
                     value={value}
+                    onSubmitEditing={handleSubmit(onSubmit)}
+                    returnKeyType="done"
                   />
                   {errors.password && (
                     <Text className="mt-2 text-red-500 font-sans-semibold text-sm">
@@ -162,8 +164,12 @@ export default function SignIn() {
             />
           </View>
 
-          <Button onPress={handleSubmit(onSubmit)} disabled={loading}>
-            {loading ? 'Loading...' : 'Login'}
+          <Button
+            onPress={handleSubmit(onSubmit)}
+            disabled={loading}
+            loading={loading}
+          >
+            Login
           </Button>
         </ScrollView>
       </TouchableWithoutFeedback>

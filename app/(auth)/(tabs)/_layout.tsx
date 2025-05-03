@@ -9,10 +9,17 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFeatureFlag } from 'posthog-react-native';
+import { useSession } from '@/context/auth';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const isSponsorSectionEnabled = useFeatureFlag('enable-sponsor-section');
+  const { user } = useSession();
+
+  const canSeeSponsorSection =
+    (user?.conferenceRoles.includes('STAFF') ||
+      user?.conferenceRoles.includes('SPONSOR')) &&
+    isSponsorSectionEnabled;
 
   return (
     <Tabs
@@ -57,7 +64,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="sponsors/leads/index"
         options={{
-          href: isSponsorSectionEnabled ? '/sponsors/leads/index' : null,
+          href: canSeeSponsorSection ? undefined : null,
           title: 'Leads',
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="store" size={24} color={color} />
@@ -75,7 +82,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="sponsors/scan"
         options={{
-          href: isSponsorSectionEnabled ? '/sponsors/scan' : null,
+          href: canSeeSponsorSection ? undefined : null,
           title: 'Scan',
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="qr-code" size={24} color={color} />
