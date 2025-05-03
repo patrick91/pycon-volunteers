@@ -14,11 +14,40 @@ import {
   BottomSheetBackdrop,
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
-import { UserProfileFromUrl } from '@/components/sponsors/user-profile/from-url';
+import { graphql } from '@/graphql';
+import { useMutation } from '@apollo/client';
+import { UserProfile } from '@/components/sponsors/user-profile';
+
+const SCAN_BADGE_MUTATION = graphql(`
+  mutation ScanBadge($input: ScanBadgeInput!) {
+    scanBadge(input: $input) {
+      __typename
+
+    ... on BadgeScan {
+      id
+      attendee {
+        email
+        fullName
+      }
+
+      notes
+    }
+
+    ... on ScanError {
+      message
+    }
+    }
+  }
+`);
 
 export default function SponsorScan() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState<string | null>(null);
+
+  const [scanBadge, { loading, error, data }] =
+    useMutation(SCAN_BADGE_MUTATION);
+
+  console.log(loading, error, data);
 
   const { result: isEmulator } = useIsEmulator();
 
@@ -39,14 +68,22 @@ export default function SponsorScan() {
   }, []);
 
   const handleBarCodeScanned = ({
-    type,
     data,
   }: {
-    type: string;
     data: string;
   }) => {
     setScanned(data);
     personSheet.current?.present();
+
+    scanBadge({
+      variables: {
+        input: {
+          url: data,
+          // TODO: change to pycon2025
+          conferenceCode: 'pycon2024',
+        },
+      },
+    });
   };
 
   if (hasPermission === null) {
@@ -69,7 +106,7 @@ export default function SponsorScan() {
             onPress={() =>
               handleBarCodeScanned({
                 type: 'qr',
-                data: 'https://www.google.com',
+                data: 'https://pycon.it/b/goggg',
               })
             }
           />
@@ -95,7 +132,19 @@ export default function SponsorScan() {
         enablePanDownToClose
       >
         <BottomSheetScrollView>
-          <UserProfileFromUrl url={scanned || ''} />
+          <View className="flex-1 justify-center items-center">
+            {loading ? (
+              <Text>Loading...</Text>
+            ) : (
+              <View className="flex-1 pb-14 w-full px-8">
+                <UserProfile
+                  attendee={data?.scanBadge.attendee}
+                  badgeId={data?.scanBadge.id}
+                  notes={data?.scanBadge.notes}
+                />
+              </View>
+            )}
+          </View>
         </BottomSheetScrollView>
       </BottomSheetModal>
     </View>

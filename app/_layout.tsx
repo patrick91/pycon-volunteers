@@ -140,11 +140,11 @@ export default function RootLayout() {
         },
       }}
     >
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <BottomSheetModalProvider>
-          <NowProvider>
-            <KeyboardProvider>
-              <APIProvider>
+      <APIProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <BottomSheetModalProvider>
+            <NowProvider>
+              <KeyboardProvider>
                 <SessionProvider>
                   <TalkConfigurationProvider>
                     <ThemeProvider
@@ -165,11 +165,11 @@ export default function RootLayout() {
                     </ThemeProvider>
                   </TalkConfigurationProvider>
                 </SessionProvider>
-              </APIProvider>
-            </KeyboardProvider>
-          </NowProvider>
-        </BottomSheetModalProvider>
-      </GestureHandlerRootView>
+              </KeyboardProvider>
+            </NowProvider>
+          </BottomSheetModalProvider>
+        </GestureHandlerRootView>
+      </APIProvider>
     </PostHogProvider>
   );
 }
