@@ -27,6 +27,7 @@ import { NowProvider } from '@/components/timer/context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TalkConfigurationProvider } from '@/context/talk-configuration';
 import { PostHogProvider } from 'posthog-react-native';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -140,32 +141,34 @@ export default function RootLayout() {
       }}
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <NowProvider>
-          <KeyboardProvider>
-            <APIProvider>
-              <SessionProvider>
-                <TalkConfigurationProvider>
-                  <ThemeProvider
-                    value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
-                  >
-                    <Stack>
-                      <Stack.Screen
-                        name="(auth)"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="sign-in"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen name="+not-found" />
-                    </Stack>
-                    <StatusBar style="auto" />
-                  </ThemeProvider>
-                </TalkConfigurationProvider>
-              </SessionProvider>
-            </APIProvider>
-          </KeyboardProvider>
-        </NowProvider>
+        <BottomSheetModalProvider>
+          <NowProvider>
+            <KeyboardProvider>
+              <APIProvider>
+                <SessionProvider>
+                  <TalkConfigurationProvider>
+                    <ThemeProvider
+                      value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+                    >
+                      <Stack>
+                        <Stack.Screen
+                          name="(auth)"
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name="sign-in"
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen name="+not-found" />
+                      </Stack>
+                      <StatusBar style="auto" />
+                    </ThemeProvider>
+                  </TalkConfigurationProvider>
+                </SessionProvider>
+              </APIProvider>
+            </KeyboardProvider>
+          </NowProvider>
+        </BottomSheetModalProvider>
       </GestureHandlerRootView>
     </PostHogProvider>
   );

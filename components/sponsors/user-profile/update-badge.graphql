@@ -1,0 +1,12 @@
+mutation UpdateBadgeScan($input: UpdateBadgeScanInput!) {
+  updateBadgeScan(input: $input) {
+    __typename
+    ... on BadgeScan {
+      id
+      notes
+    }
+    ... on ScanError {
+      message
+    }
+  }
+}

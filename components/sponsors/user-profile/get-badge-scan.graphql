@@ -1,0 +1,11 @@
+query GetBadgeScan($id: ID!) {
+  badgeScan(id: $id) {
+    id
+    attendee {
+      email
+      fullName
+    }
+
+    notes
+  }
+}

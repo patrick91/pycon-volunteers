@@ -1,0 +1,19 @@
+mutation ScanBadge($input: ScanBadgeInput!) {
+  scanBadge(input: $input) {
+    __typename
+
+    ... on BadgeScan {
+      id
+      attendee {
+        email
+        fullName
+      }
+
+      notes
+    }
+
+    ... on ScanError {
+      message
+    }
+  }
+}

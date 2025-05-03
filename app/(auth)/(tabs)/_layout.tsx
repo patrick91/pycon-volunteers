@@ -51,6 +51,25 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      <Tabs.Screen
+        name="sponsors/index"
+        options={{
+          title: 'Leads',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="store" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="sponsors/scan"
+        options={{
+          title: 'Scan',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="qr-code" size={24} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
