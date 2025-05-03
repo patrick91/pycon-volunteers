@@ -8,9 +8,11 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useFeatureFlag } from 'posthog-react-native';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const isSponsorSectionEnabled = useFeatureFlag('enable-sponsor-section');
 
   return (
     <Tabs
@@ -53,17 +55,27 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="sponsors/index"
+        name="sponsors/leads/index"
         options={{
+          href: isSponsorSectionEnabled ? '/sponsors/leads/index' : null,
           title: 'Leads',
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="store" size={24} color={color} />
           ),
         }}
       />
+
+      <Tabs.Screen
+        name="sponsors/leads/[id]"
+        options={{
+          href: null,
+        }}
+      />
+
       <Tabs.Screen
         name="sponsors/scan"
         options={{
+          href: isSponsorSectionEnabled ? '/sponsors/scan' : null,
           title: 'Scan',
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="qr-code" size={24} color={color} />

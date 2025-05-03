@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, SafeAreaView, Button } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { useNavigation } from 'expo-router';
+import { Link, useNavigation } from 'expo-router';
 import { graphql } from '@/graphql';
 import { useQuery } from '@apollo/client';
 
@@ -38,7 +38,7 @@ export default function LeadsPage() {
 
   const { data, loading, error, refetch } = useQuery(MY_LEADS_QUERY, {
     variables: {
-      conferenceCode: 'pycon2025',
+      conferenceCode: 'pycon2024',
     },
     notifyOnNetworkStatusChange: true,
   });
@@ -58,8 +58,7 @@ export default function LeadsPage() {
   }
 
   return (
-    <SafeAreaView className="flex-1 pb-[100px] bg-red-200">
-      <Button title="Refresh" onPress={() => refetch()} />
+    <SafeAreaView className="flex-1 pb-[100px]">
       <View className="flex-1">
         {loading && (
           <View className="flex-row items-center justify-center px-2 py-2 border-b-2 bg-[#fce8de]">
@@ -76,15 +75,19 @@ export default function LeadsPage() {
         )}
 
         <FlashList
-          data={new Array(100).fill(null).map((_, index) => ({
-            id: index.toString(),
-            attendee: { fullName: 'Loading...' },
-          }))}
-          renderItem={({ item }) => <Item item={item} />}
-          estimatedItemSize={50}
-          ListFooterComponent={
-            <Button title="Refresh" onPress={() => refetch()} />
-          }
+          data={data?.badgeScans.items}
+          renderItem={({ item }) => (
+            <Link
+              href={{
+                pathname: '/sponsors/leads/[id]',
+                params: {
+                  id: item.id,
+                },
+              }}
+            >
+              <Item item={item} />
+            </Link>
+          )}
         />
       </View>
     </SafeAreaView>
