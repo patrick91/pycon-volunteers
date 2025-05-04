@@ -8,6 +8,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useTalkConfiguration } from '@/context/talk-configuration';
 import clsx from 'clsx';
 import * as Haptics from 'expo-haptics';
+import { useSession } from '@/context/auth';
 
 function TimeLeft({
   title,
@@ -19,7 +20,9 @@ function TimeLeft({
   return (
     <>
       <Text className="text-xl font-bold">{title}</Text>
-      <Text className="tabular-nums text-7xl">{timeLeft}</Text>
+      <Text className="text-7xl" style={{ fontVariant: ['tabular-nums'] }}>
+        {timeLeft}
+      </Text>
     </>
   );
 }
@@ -42,6 +45,8 @@ function TimerContent({
     id: string;
   };
 }) {
+  const { user } = useSession();
+
   const { now } = useNow();
   const start = parseISO(event.start);
   const end = parseISO(event.end);
@@ -70,7 +75,7 @@ function TimerContent({
     }
   }, [status]);
 
-  if (inDistantFuture) {
+  if (inDistantFuture || !user?.canSeeTalkTimer) {
     return (
       <View className="bg-[#FEFFD3] p-4 justify-center items-center gap-2">
         <Text>
@@ -117,9 +122,14 @@ export const Timer = ({
   };
 }) => {
   const { hasQa } = useTalkConfiguration(event.id);
+  const { user } = useSession();
   const { setDebug } = useNow();
 
   const handleDebugToggle = () => {
+    if (!user?.canSeeTalkTimer) {
+      return;
+    }
+
     if (debug) {
       setDebug(false);
     } else {

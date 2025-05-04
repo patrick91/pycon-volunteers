@@ -5,7 +5,7 @@ import { graphql, readFragment } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
 import { SPEAKERS_FRAGMENT } from '..';
 import { Image } from 'expo-image';
-
+import { useCurrentConference } from '@/hooks/use-current-conference';
 const SPEAKERS_QUERY = graphql(
   `  query Talk($slug: String!, $code: String!) {
     conference(code: $code) {
@@ -22,9 +22,9 @@ const SPEAKERS_QUERY = graphql(
 
 export default function SpeakerPage() {
   const { slug, id } = useLocalSearchParams();
-
+  const { code } = useCurrentConference();
   const { data } = useSuspenseQuery(SPEAKERS_QUERY, {
-    variables: { slug: slug as string, code: 'pycon2025' },
+    variables: { slug: slug as string, code },
   });
 
   if (!data.conference.talk) {

@@ -21,7 +21,7 @@ import { useMutation } from '@apollo/client';
 import { useRouter } from 'expo-router';
 import { useSession } from '@/context/auth';
 import { USER_PROFILE_FRAGMENT } from './(auth)/(tabs)/profile';
-
+import { useCurrentConference } from '@/hooks/use-current-conference';
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string(),
@@ -31,7 +31,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 const LOGIN_MUTATION = graphql(
   `
-  mutation Login($email: String!, $password: String!) {
+  mutation Login($email: String!, $password: String!, $conferenceCode: String!) {
     login(input: { email: $email, password: $password }) {
       __typename
       ... on LoginSuccess {
@@ -67,12 +67,13 @@ export default function SignIn() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signIn } = useSession();
+  const { code } = useCurrentConference();
 
   const [login, { loading }] = useMutation(LOGIN_MUTATION);
 
   const onSubmit = async (data: LoginFormData) => {
     const result = await login({
-      variables: { ...data },
+      variables: { ...data, conferenceCode: code },
     });
 
     if (result.data?.login.__typename === 'LoginSuccess') {
@@ -130,6 +131,7 @@ export default function SignIn() {
                     autoCapitalize="none"
                     onChangeText={onChange}
                     value={value}
+                    textContentType="emailAddress"
                   />
                   {errors.email && (
                     <Text className="mt-2 text-red-500 font-sans-semibold text-sm">
@@ -153,6 +155,7 @@ export default function SignIn() {
                     value={value}
                     onSubmitEditing={handleSubmit(onSubmit)}
                     returnKeyType="done"
+                    textContentType="password"
                   />
                   {errors.password && (
                     <Text className="mt-2 text-red-500 font-sans-semibold text-sm">

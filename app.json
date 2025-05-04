@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "pycon-volunteers",
+    "name": "PyCon Italia 2025",
     "slug": "pycon-volunteers",
     "version": "1.0.1",
     "orientation": "portrait",
@@ -14,7 +14,8 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSSupportsLiveActivities": true
-      }
+      },
+      "associatedDomains": ["webcredentials:pycon.it"]
     },
     "android": {
       "adaptiveIcon": {

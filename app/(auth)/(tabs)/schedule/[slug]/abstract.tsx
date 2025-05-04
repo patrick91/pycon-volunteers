@@ -3,7 +3,7 @@ import { useSuspenseQuery } from '@apollo/client';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { View, Text, ScrollView } from 'react-native';
 import Markdown from 'react-native-markdown-display';
-
+import { useCurrentConference } from '@/hooks/use-current-conference';
 const TALK_QUERY = graphql(
   `query Talk($slug: String!, $code: String!) {
     conference(code: $code) {
@@ -20,7 +20,7 @@ const TALK_QUERY = graphql(
 
 export default function Abstract() {
   const slug = useLocalSearchParams().slug as string;
-  const code = 'pycon2025';
+  const { code } = useCurrentConference();
 
   const { data } = useSuspenseQuery(TALK_QUERY, {
     variables: { slug, code },

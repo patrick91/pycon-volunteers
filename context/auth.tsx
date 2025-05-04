@@ -15,6 +15,8 @@ type User = {
   email: string;
   fullName: string;
   conferenceRoles: string[];
+  canSeeSponsorSection: boolean;
+  canSeeTalkTimer: boolean;
 };
 
 const AuthContext = createContext<{
@@ -75,10 +77,7 @@ export function SessionProvider({
       posthog.reset();
     }
 
-    posthog.reloadFeatureFlagsAsync().then((a) => {
-      console.log(posthog.getDistinctId());
-      console.log('[Auth] Reloaded feature flags', a);
-    });
+    posthog.reloadFeatureFlags();
   }, [session, posthog]);
 
   const router = useRouter();
@@ -86,7 +85,13 @@ export function SessionProvider({
     <AuthContext.Provider
       value={{
         signIn: (user: User) => {
-          setSession(JSON.stringify(user));
+          const userInfo = {
+            ...user,
+            canSeeSponsorSection: user.conferenceRoles.includes('SPONSOR'),
+            canSeeTalkTimer: user.conferenceRoles.includes('STAFF'),
+          };
+
+          setSession(JSON.stringify(userInfo));
         },
         signOut: async () => {
           await signOut();

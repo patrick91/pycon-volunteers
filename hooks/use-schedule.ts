@@ -1,6 +1,6 @@
 import { graphql, readFragment, type ResultOf } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
-
+import { useCurrentConference } from '@/hooks/use-current-conference';
 import { ITEM_FRAGMENT, type Item } from '@/components/session-item';
 import { parseISO, format, isSameDay } from 'date-fns';
 
@@ -59,8 +59,8 @@ const hourFromDatetime = (
 
 const SCHEDULE_QUERY = graphql(
   `
-  query Schedule {
-    conference(code: "pycon2025") {
+  query Schedule($conferenceCode: String!) {
+    conference(code: $conferenceCode) {
       id
       days {
         rooms {
@@ -223,7 +223,13 @@ function getDailySchedule(data: ResultOf<typeof SCHEDULE_QUERY>, day: Date) {
 export type DaySchedule = ReturnType<typeof getDailySchedule>;
 
 export const useSchedule = () => {
-  const { data } = useSuspenseQuery(SCHEDULE_QUERY);
+  const { code } = useCurrentConference();
+
+  const { data } = useSuspenseQuery(SCHEDULE_QUERY, {
+    variables: {
+      conferenceCode: code,
+    },
+  });
 
   const days = data.conference.days.map((day) => ({
     label: format(parseISO(day.day), 'dd MMM yyyy'),

@@ -4,19 +4,20 @@ import { useSuspenseQuery } from '@apollo/client';
 import { useSession } from '@/context/auth';
 import { Button } from '@/components/form/button';
 import { usePostHog } from 'posthog-react-native';
+import { useCurrentConference } from '@/hooks/use-current-conference';
 
 export const USER_PROFILE_FRAGMENT = graphql(`
   fragment UserProfile on User {
     id
     email
     fullName
-    conferenceRoles(conferenceCode: "pycon2025")
+    conferenceRoles(conferenceCode: $conferenceCode)
   }
 `);
 
 const USER_PROFILE_QUERY = graphql(
   `
-  query UserProfile {
+  query UserProfile($conferenceCode: String!) {
     me {
       ...UserProfile
     }
@@ -73,7 +74,13 @@ const ProfileInfo = ({
 };
 
 export default function Profile() {
-  const { data } = useSuspenseQuery(USER_PROFILE_QUERY);
+  const { code } = useCurrentConference();
+
+  const { data } = useSuspenseQuery(USER_PROFILE_QUERY, {
+    variables: {
+      conferenceCode: code,
+    },
+  });
 
   return (
     <SafeAreaView className="flex-1 bg-white">

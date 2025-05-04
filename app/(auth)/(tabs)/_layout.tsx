@@ -17,9 +17,7 @@ export default function TabLayout() {
   const { user } = useSession();
 
   const canSeeSponsorSection =
-    (user?.conferenceRoles.includes('STAFF') ||
-      user?.conferenceRoles.includes('SPONSOR')) &&
-    isSponsorSectionEnabled;
+    user?.canSeeSponsorSection && isSponsorSectionEnabled;
 
   return (
     <Tabs

@@ -17,7 +17,7 @@ import {
 import { graphql } from '@/graphql';
 import { useMutation } from '@apollo/client';
 import { UserProfile } from '@/components/sponsors/user-profile';
-
+import { useCurrentConference } from '@/hooks/use-current-conference';
 const SCAN_BADGE_MUTATION = graphql(`
   mutation ScanBadge($input: ScanBadgeInput!) {
     scanBadge(input: $input) {
@@ -67,6 +67,8 @@ export default function SponsorScan() {
     return <BottomSheetBackdrop {...props} pressBehavior="close" />;
   }, []);
 
+  const { code } = useCurrentConference();
+
   const handleBarCodeScanned = ({
     data,
   }: {
@@ -75,12 +77,13 @@ export default function SponsorScan() {
     setScanned(data);
     personSheet.current?.present();
 
+    console.log(data);
+
     scanBadge({
       variables: {
         input: {
           url: data,
-          // TODO: change to pycon2025
-          conferenceCode: 'pycon2024',
+          conferenceCode: code,
         },
       },
     });
@@ -94,8 +97,6 @@ export default function SponsorScan() {
     return <Text>No access to camera</Text>;
   }
 
-  console.log(isEmulator);
-
   return (
     <View className="flex-1 justify-center items-center">
       {isEmulator ? (
@@ -105,8 +106,7 @@ export default function SponsorScan() {
             title="Scan"
             onPress={() =>
               handleBarCodeScanned({
-                type: 'qr',
-                data: 'https://pycon.it/b/goggg',
+                data: 'https://pycon.it/b/wqdkk',
               })
             }
           />
@@ -137,11 +137,15 @@ export default function SponsorScan() {
               <Text>Loading...</Text>
             ) : (
               <View className="flex-1 pb-14 w-full px-8">
-                <UserProfile
-                  attendee={data?.scanBadge.attendee}
-                  badgeId={data?.scanBadge.id}
-                  notes={data?.scanBadge.notes}
-                />
+                {data?.scanBadge.__typename === 'BadgeScan' ? (
+                  <UserProfile
+                    attendee={data.scanBadge.attendee}
+                    badgeId={data.scanBadge.id}
+                    notes={data.scanBadge.notes}
+                  />
+                ) : (
+                  <Text>{data?.scanBadge.message}</Text>
+                )}
               </View>
             )}
           </View>

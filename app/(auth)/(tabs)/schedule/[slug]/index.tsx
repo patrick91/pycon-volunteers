@@ -20,7 +20,7 @@ import {
   stopLiveActivity,
   updateLiveActivity,
 } from '@/modules/activity-controller';
-
+import { useCurrentConference } from '@/hooks/use-current-conference';
 export const SPEAKERS_FRAGMENT = graphql(
   `fragment SpeakersFragment on ScheduleItem {
       speakers {
@@ -280,6 +280,7 @@ function TalkConfigurationView({ talk }: { talk: { id: string } }) {
 }
 
 import * as TaskManager from 'expo-task-manager';
+import { useSession } from '@/context/auth';
 
 const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
 
@@ -299,9 +300,11 @@ Notifications.addNotificationReceivedListener((notification) => {
 
 export function Session() {
   const slug = useLocalSearchParams().slug as string;
-  const code = 'pycon2025';
+  const { code } = useCurrentConference();
   const language = 'en';
   const enableLiveActivity = useFeatureFlag('enable-live-activity');
+
+  const { user } = useSession();
 
   const { data } = useSuspenseQuery(TALK_QUERY, {
     variables: { slug, code, language },
@@ -416,7 +419,7 @@ export function Session() {
 
       <SpeakersView data={talk} />
 
-      <TalkConfigurationView talk={talk} />
+      {user?.canSeeTalkTimer && <TalkConfigurationView talk={talk} />}
 
       <View className="px-4 mt-4">
         <Text className="text-2xl font-bold">Elevator Pitch</Text>
@@ -433,6 +436,8 @@ export function Session() {
 }
 
 function Skeleton() {
+  const { user } = useSession();
+
   return (
     <View className="flex-1">
       <Stack.Screen options={{ title: 'Loading...' }} />
@@ -457,9 +462,11 @@ function Skeleton() {
       </View>
 
       {/* Talk Configuration skeleton */}
-      <View className="border-b-2 pb-4 pt-4 px-4">
-        <View className="h-8 w-1/2 bg-gray-200 rounded" />
-      </View>
+      {user?.canSeeTalkTimer && (
+        <View className="border-b-2 pb-4 pt-4 px-4">
+          <View className="h-8 w-1/2 bg-gray-200 rounded" />
+        </View>
+      )}
 
       {/* Elevator Pitch skeleton */}
       <View className="mb-4 px-4 mt-4">

@@ -4,7 +4,7 @@ import { FlashList } from '@shopify/flash-list';
 import { Link, useNavigation } from 'expo-router';
 import { graphql } from '@/graphql';
 import { useQuery } from '@apollo/client';
-
+import { useCurrentConference } from '@/hooks/use-current-conference';
 const MY_LEADS_QUERY = graphql(`
   query MyLeads($conferenceCode: String!) {
     badgeScans(conferenceCode: $conferenceCode) {
@@ -35,10 +35,11 @@ const Item = ({
 
 export default function LeadsPage() {
   const navigation = useNavigation();
+  const { code } = useCurrentConference();
 
   const { data, loading, error, refetch } = useQuery(MY_LEADS_QUERY, {
     variables: {
-      conferenceCode: 'pycon2024',
+      conferenceCode: code,
     },
     notifyOnNetworkStatusChange: true,
   });
