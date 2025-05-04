@@ -65,13 +65,13 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('[Apollo] Initializing cache persistence');
 
       try {
-        // const persistor = new CachePersistor({
-        //   cache,
-        //   storage: new AsyncStorageWrapper(AsyncStorage),
-        //   debug: __DEV__,
-        // });
+        const persistor = new CachePersistor({
+          cache,
+          storage: new AsyncStorageWrapper(AsyncStorage),
+          debug: __DEV__,
+        });
 
-        // await persistor.restore();
+        await persistor.restore();
 
         const apolloClient = new ApolloClient({
           cache,
@@ -83,7 +83,7 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
           ),
         });
 
-        // setPersistor(persistor);
+        setPersistor(persistor);
         setClient(apolloClient);
         console.log('[Apollo] Client created and initialized');
       } catch (error) {
