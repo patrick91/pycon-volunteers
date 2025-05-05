@@ -15,7 +15,9 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSSupportsLiveActivities": true
       },
-      "associatedDomains": ["webcredentials:pycon.it"]
+      "associatedDomains": [
+        "webcredentials:pycon.it"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -51,7 +53,15 @@
         }
       ],
       "expo-localization",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "mobile-app",
+          "organization": "python-italia"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

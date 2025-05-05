@@ -33,6 +33,19 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TalkConfigurationProvider } from '@/context/talk-configuration';
 import { PostHogProvider } from 'posthog-react-native';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://04b3849882e246c3a3252f0d09d5b9bf@o296856.ingest.us.sentry.io/4505223715946496',
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -121,7 +134,7 @@ if (__DEV__) {
   loadErrorMessages();
 }
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     GeneralSans: require('../assets/fonts/GeneralSans-Regular.otf'),
@@ -197,4 +210,4 @@ export default function RootLayout() {
       </APIProvider>
     </PostHogProvider>
   );
-}
+});
