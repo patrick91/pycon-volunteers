@@ -5,7 +5,7 @@ export default function ScheduleLayout() {
     <Stack>
       <Stack.Screen
         name="[slug]/index"
-        options={{ title: '', headerBackButtonDisplayMode: 'minimal' }}
+        options={{ title: 'Schedule', headerBackButtonDisplayMode: 'minimal' }}
       />
       <Stack.Screen
         name="[slug]/speaker/[id]"

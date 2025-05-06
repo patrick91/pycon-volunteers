@@ -17,7 +17,8 @@
       },
       "associatedDomains": [
         "webcredentials:pycon.it"
-      ]
+      ],
+      "appleTeamId": "Z7Q27G3R62"
     },
     "android": {
       "adaptiveIcon": {
@@ -71,7 +72,20 @@
         "origin": false
       },
       "eas": {
-        "projectId": "41750415-3711-4023-9e9c-6b7a56dee328"
+        "projectId": "41750415-3711-4023-9e9c-6b7a56dee328",
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "bundleIdentifier": "it.pycon.conference.widget",
+                  "targetName": "widget",
+                  "entitlements": {}
+                }
+              ]
+            }
+          }
+        }
       }
     }
   }

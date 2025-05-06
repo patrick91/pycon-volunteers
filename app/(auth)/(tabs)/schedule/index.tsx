@@ -1,4 +1,4 @@
-import { TouchableOpacity, View, Text } from 'react-native';
+import { TouchableOpacity, View, Text, Platform } from 'react-native';
 import { ScheduleGridView } from './grid-view';
 import { ScheduleListView } from './list-view';
 import { Stack } from 'expo-router';
@@ -6,6 +6,7 @@ import { DaySelector } from '@/app/components/day-selector';
 import { useState } from 'react';
 import { useSchedule } from '@/hooks/use-schedule';
 import Feather from '@expo/vector-icons/Feather';
+import type { DaySchedule } from '@/hooks/use-schedule';
 
 const ViewModeSelector = ({
   viewMode,
@@ -31,10 +32,9 @@ const ViewModeSelector = ({
 
 export default function SchedulePage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
-
   const [day, setDay] = useState('2025-05-28');
 
-  const { days, schedule } = useSchedule();
+  const { days, schedule, searchAllTalks } = useSchedule();
 
   const daySchedule = schedule[day];
 
@@ -47,7 +47,9 @@ export default function SchedulePage() {
             <View className="flex-1 flex flex-row justify-center items-center">
               <DaySelector
                 days={days}
-                onDayChange={(day) => setDay(day)}
+                onDayChange={(newDay) => {
+                  setDay(newDay);
+                }}
                 selectedDay={day}
               />
             </View>
@@ -60,10 +62,19 @@ export default function SchedulePage() {
           ),
         }}
       />
-      {viewMode === 'grid' ? (
-        <ScheduleGridView schedule={daySchedule} />
+      {daySchedule ? (
+        viewMode === 'grid' ? (
+          <ScheduleGridView schedule={daySchedule} />
+        ) : (
+          <ScheduleListView
+            schedule={daySchedule}
+            searchAllTalks={searchAllTalks}
+          />
+        )
       ) : (
-        <ScheduleListView schedule={daySchedule} />
+        <View className="flex-1 justify-center items-center">
+          <Text>No schedule data available.</Text>
+        </View>
       )}
     </View>
   );

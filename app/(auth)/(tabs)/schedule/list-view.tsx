@@ -1,22 +1,41 @@
-import { View, Text } from 'react-native';
+import { View, Text, TextInput } from 'react-native';
 import type { DaySchedule } from '@/hooks/use-schedule';
 import { SessionItem, type Item } from '@/components/session-item';
 import { Link } from 'expo-router';
 import { parseISO } from 'date-fns';
 import clsx from 'clsx';
 import { FlashList } from '@shopify/flash-list';
+import { useState, useMemo } from 'react';
 
 export function ScheduleListView({
   schedule,
+  searchAllTalks,
 }: {
   schedule: DaySchedule;
+  searchAllTalks: (query: string) => Item[];
 }) {
-  // Group sessions by time
-  const sessionsByTime = schedule.rooms.reduce(
-    (acc, room) => {
-      if (typeof room === 'string') return acc;
+  const [searchQuery, setSearchQuery] = useState('');
 
-      for (const { session } of room.sessions) {
+  const itemsToDisplay = useMemo(() => {
+    if (searchQuery.trim()) {
+      return searchAllTalks(searchQuery.trim());
+    }
+    // If no search query, extract all items from the daily schedule
+    const dailyItems: Item[] = [];
+    for (const room of schedule.rooms) {
+      if (typeof room !== 'string') {
+        for (const scheduleSession of room.sessions) {
+          dailyItems.push(scheduleSession.session);
+        }
+      }
+    }
+    return dailyItems;
+  }, [searchQuery, schedule, searchAllTalks]);
+
+  // Group sessions by time
+  const sessionsByTime = useMemo(() => {
+    return itemsToDisplay.reduce(
+      (acc, session) => {
         const startTime = parseISO(session.start);
         const timeKey = startTime.toISOString();
 
@@ -27,7 +46,8 @@ export function ScheduleListView({
           };
         }
 
-        // Check if this session is already in the time slot
+        // Check if this session is already in the time slot (based on title and speakers)
+        // This deduplication might be more relevant for daily view than search results
         const isDuplicate = acc[timeKey].sessions.some(
           (existingSession) =>
             existingSession.title === session.title &&
@@ -39,17 +59,18 @@ export function ScheduleListView({
         if (!isDuplicate) {
           acc[timeKey].sessions.push(session);
         }
-      }
-
-      return acc;
-    },
-    {} as Record<string, { time: Date; sessions: Item[] }>,
-  );
+        return acc;
+      },
+      {} as Record<string, { time: Date; sessions: Item[] }>,
+    );
+  }, [itemsToDisplay]);
 
   // Sort time slots and flatten for FlashList
-  const sortedTimeSlots = Object.values(sessionsByTime).sort(
-    (a, b) => a.time.getTime() - b.time.getTime(),
-  );
+  const sortedTimeSlots = useMemo(() => {
+    return Object.values(sessionsByTime).sort(
+      (a, b) => a.time.getTime() - b.time.getTime(),
+    );
+  }, [sessionsByTime]);
 
   return (
     <FlashList
@@ -57,6 +78,17 @@ export function ScheduleListView({
       contentContainerStyle={{ paddingBottom: 86 }}
       data={sortedTimeSlots}
       estimatedItemSize={120}
+      ListHeaderComponent={
+        <View className="border-b-2 border-black">
+          <TextInput
+            placeholder="Search talks and speakers..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            className="bg-white p-3"
+            clearButtonMode="while-editing"
+          />
+        </View>
+      }
       renderItem={({ item: slot }) => (
         <View key={slot.time.toISOString()} className="border-b-2 border-black">
           <View className="bg-white p-4 border-b-2 border-black">

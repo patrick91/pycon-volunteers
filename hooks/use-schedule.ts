@@ -242,8 +242,40 @@ export const useSchedule = () => {
     days.map((day) => [day.dayString, getDailySchedule(data, day.day)]),
   );
 
+  const searchAllTalks = (searchTerm: string): Item[] => {
+    if (!searchTerm.trim()) {
+      return [];
+    }
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    const allTalks: Item[] = [];
+
+    for (const day of data.conference.days) {
+      for (const slot of day.slots) {
+        const items = readFragment(ITEM_FRAGMENT, slot.items);
+        for (const item of items) {
+          const titleMatch = item.title
+            .toLowerCase()
+            .includes(lowerCaseSearchTerm);
+          const speakerMatch = item.speakers.some((speaker) =>
+            speaker.fullName.toLowerCase().includes(lowerCaseSearchTerm),
+          );
+          // Add other fields to search if necessary e.g. item.description
+          if (titleMatch || speakerMatch) {
+            allTalks.push(item);
+          }
+        }
+      }
+    }
+    // Deduplicate talks by ID, in case a talk appears in multiple slots or days (though unlikely for titles/speakers)
+    const uniqueTalks = Array.from(
+      new Map(allTalks.map((talk) => [talk.id, talk])).values(),
+    );
+    return uniqueTalks;
+  };
+
   return {
     schedule,
     days,
+    searchAllTalks,
   };
 };
