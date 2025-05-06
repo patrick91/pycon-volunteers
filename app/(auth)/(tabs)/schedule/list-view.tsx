@@ -1,9 +1,10 @@
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text } from 'react-native';
 import type { DaySchedule } from '@/hooks/use-schedule';
 import { SessionItem, type Item } from '@/components/session-item';
 import { Link } from 'expo-router';
 import { parseISO } from 'date-fns';
 import clsx from 'clsx';
+import { FlashList } from '@shopify/flash-list';
 
 export function ScheduleListView({
   schedule,
@@ -45,17 +46,18 @@ export function ScheduleListView({
     {} as Record<string, { time: Date; sessions: Item[] }>,
   );
 
-  // Sort time slots
+  // Sort time slots and flatten for FlashList
   const sortedTimeSlots = Object.values(sessionsByTime).sort(
     (a, b) => a.time.getTime() - b.time.getTime(),
   );
 
   return (
-    <ScrollView
+    <FlashList
       className="flex-1 bg-[#FAF5F3]"
-      contentContainerClassName="pb-[86px]"
-    >
-      {sortedTimeSlots.map((slot, index) => (
+      contentContainerStyle={{ paddingBottom: 86 }}
+      data={sortedTimeSlots}
+      estimatedItemSize={120}
+      renderItem={({ item: slot }) => (
         <View key={slot.time.toISOString()} className="border-b-2 border-black">
           <View className="bg-white p-4 border-b-2 border-black">
             <Text className="text-lg font-bold">
@@ -78,7 +80,7 @@ export function ScheduleListView({
             </Link>
           ))}
         </View>
-      ))}
-    </ScrollView>
+      )}
+    />
   );
 }
