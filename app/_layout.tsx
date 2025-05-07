@@ -18,7 +18,6 @@ import {
   HttpLink,
   NormalizedCacheObject,
 } from "@apollo/client";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { onError } from "@apollo/client/link/error";
@@ -129,8 +128,7 @@ if (__DEV__) {
   loadErrorMessages();
 }
 
-export default Sentry.wrap(function RootLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
   const [loaded] = useFonts({
     GeneralSans: require("../assets/fonts/GeneralSans-Regular.otf"),
     GeneralSansSemibold: require("../assets/fonts/GeneralSans-Semibold.otf"),
@@ -180,22 +178,18 @@ export default Sentry.wrap(function RootLayout() {
           <BottomSheetModalProvider>
             <KeyboardProvider>
               <TalkConfigurationProvider>
-                <ThemeProvider
-                  value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-                >
-                  <Stack>
-                    <Stack.Screen
-                      name="(auth)"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="sign-in"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen name="+not-found" />
-                  </Stack>
-                  <StatusBar style="auto" />
-                </ThemeProvider>
+                <Stack>
+                  <Stack.Screen
+                    name="(auth)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="sign-in"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+                <StatusBar style="auto" />
               </TalkConfigurationProvider>
             </KeyboardProvider>
           </BottomSheetModalProvider>
@@ -203,4 +197,4 @@ export default Sentry.wrap(function RootLayout() {
       </APIProvider>
     </PostHogProvider>
   );
-});
+}

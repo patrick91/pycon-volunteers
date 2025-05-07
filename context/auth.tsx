@@ -68,16 +68,16 @@ export function SessionProvider({
     if (session) {
       console.log("[Auth] Identifying user", session);
 
-      // posthog.identify(session.id, {
-      //   email: session.email,
-      //   name: session.fullName,
-      //   conferenceRoles: session.conferenceRoles,
-      // });
+      posthog.identify(session.id, {
+        email: session.email,
+        name: session.fullName,
+        conferenceRoles: session.conferenceRoles,
+      });
     } else {
-      // posthog.reset();
+      posthog.reset();
     }
 
-    // posthog.reloadFeatureFlags();
+    posthog.reloadFeatureFlags();
   }, [session, posthog]);
 
   const router = useRouter();

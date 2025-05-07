@@ -1,7 +1,6 @@
-import * as DropdownMenu from 'zeego/dropdown-menu';
-import { Text, View } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import Feather from '@expo/vector-icons/Feather';
+import * as DropdownMenu from "zeego/dropdown-menu";
+import { Text, View } from "react-native";
+import Feather from "@expo/vector-icons/Feather";
 
 export function DaySelector({
   days,
@@ -12,9 +11,6 @@ export function DaySelector({
   onDayChange: (day: string) => void;
   selectedDay: string;
 }) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
@@ -22,8 +18,8 @@ export function DaySelector({
           <Text
             style={{
               fontSize: 16,
-              fontWeight: '600',
-              color: isDark ? '#fff' : '#000',
+              fontWeight: "600",
+              color: "#000",
             }}
           >
             {days.find((day) => day.id === selectedDay)?.label}
