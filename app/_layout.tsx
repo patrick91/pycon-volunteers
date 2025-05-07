@@ -2,41 +2,41 @@ import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
-} from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack, useRouter } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
-import 'react-native-reanimated';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SessionProvider } from '@/context/auth';
+} from "@react-navigation/native";
+import { useFonts } from "expo-font";
+import { Stack, useRouter } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
+import "react-native-reanimated";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SessionProvider } from "@/context/auth";
 import {
   ApolloClient,
   InMemoryCache,
   ApolloProvider,
   HttpLink,
   NormalizedCacheObject,
-} from '@apollo/client';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
-import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
-import { onError } from '@apollo/client/link/error';
+} from "@apollo/client";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
+import { onError } from "@apollo/client/link/error";
 import {
   AsyncStorageWrapper,
   persistCache,
   CachePersistor,
-} from 'apollo3-cache-persist';
-import '../global.css';
-import { NowProvider } from '@/components/timer/context';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { TalkConfigurationProvider } from '@/context/talk-configuration';
-import { PostHogProvider } from 'posthog-react-native';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import * as Sentry from '@sentry/react-native';
+} from "apollo3-cache-persist";
+import "../global.css";
+import { NowProvider } from "@/components/timer/context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { TalkConfigurationProvider } from "@/context/talk-configuration";
+import { PostHogProvider } from "posthog-react-native";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import * as Sentry from "@sentry/react-native";
 
 Sentry.init({
-  dsn: 'https://04b3849882e246c3a3252f0d09d5b9bf@o296856.ingest.us.sentry.io/4505223715946496',
+  dsn: "https://04b3849882e246c3a3252f0d09d5b9bf@o296856.ingest.us.sentry.io/4505223715946496",
 
   // Configure Session Replay
   replaysSessionSampleRate: 0.1,
@@ -56,13 +56,13 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
 
   const errorLink = onError(({ graphQLErrors }) => {
     if (graphQLErrors) {
-      console.log('graphQLErrors', graphQLErrors);
+      console.log("graphQLErrors", graphQLErrors);
       const hasPermissionError = graphQLErrors.some(
-        (error) => error.message === 'User not logged in',
+        (error) => error.message === "User not logged in",
       );
 
       if (hasPermissionError) {
-        router.replace('/sign-in');
+        router.replace("/sign-in");
       }
     }
   });
@@ -75,7 +75,7 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const initCache = async () => {
       const cache = new InMemoryCache();
-      console.log('[Apollo] Initializing cache persistence');
+      console.log("[Apollo] Initializing cache persistence");
 
       try {
         const persistor = new CachePersistor({
@@ -90,17 +90,17 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
           cache,
           link: errorLink.concat(
             new HttpLink({
-              uri: 'https://2025.pycon.it/graphql',
-              credentials: 'include',
+              uri: "https://2025.pycon.it/graphql",
+              credentials: "include",
             }),
           ),
         });
 
         setPersistor(persistor);
         setClient(apolloClient);
-        console.log('[Apollo] Client created and initialized');
+        console.log("[Apollo] Client created and initialized");
       } catch (error) {
-        console.error('[Apollo] Error initializing cache:', error);
+        console.error("[Apollo] Error initializing cache:", error);
       }
     };
 
@@ -115,7 +115,7 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
     <ApolloProvider client={client}>
       <SessionProvider
         onSignOut={() => {
-          console.log('[Apollo] Signing out');
+          console.log("[Apollo] Signing out");
 
           persistor?.remove();
           persistor?.purge();
@@ -129,7 +129,7 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 if (__DEV__) {
-  console.log('Loading dev messages');
+  console.log("Loading dev messages");
   loadDevMessages();
   loadErrorMessages();
 }
@@ -137,8 +137,8 @@ if (__DEV__) {
 export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    GeneralSans: require('../assets/fonts/GeneralSans-Regular.otf'),
-    GeneralSansSemibold: require('../assets/fonts/GeneralSans-Semibold.otf'),
+    GeneralSans: require("../assets/fonts/GeneralSans-Regular.otf"),
+    GeneralSansSemibold: require("../assets/fonts/GeneralSans-Semibold.otf"),
   });
 
   useEffect(() => {
@@ -155,10 +155,10 @@ export default Sentry.wrap(function RootLayout() {
     <PostHogProvider
       apiKey="phc_fsvj5ZUObZDpYQ4ggQgHt1lG8UY3E2z683TqjOeLDEr"
       options={{
-        host: 'https://eu.i.posthog.com',
+        host: "https://eu.i.posthog.com",
         enableSessionReplay: true,
         preloadFeatureFlags: true,
-        persistence: 'memory',
+        persistence: "memory",
         sessionReplayConfig: {
           // Whether text inputs are masked. Default is true.
           // Password inputs are always masked regardless
@@ -183,28 +183,26 @@ export default Sentry.wrap(function RootLayout() {
       <APIProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <BottomSheetModalProvider>
-            <NowProvider>
-              <KeyboardProvider>
-                <TalkConfigurationProvider>
-                  <ThemeProvider
-                    value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
-                  >
-                    <Stack>
-                      <Stack.Screen
-                        name="(auth)"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="sign-in"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen name="+not-found" />
-                    </Stack>
-                    <StatusBar style="auto" />
-                  </ThemeProvider>
-                </TalkConfigurationProvider>
-              </KeyboardProvider>
-            </NowProvider>
+            <KeyboardProvider>
+              <TalkConfigurationProvider>
+                <ThemeProvider
+                  value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+                >
+                  <Stack>
+                    <Stack.Screen
+                      name="(auth)"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="sign-in"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen name="+not-found" />
+                  </Stack>
+                  <StatusBar style="auto" />
+                </ThemeProvider>
+              </TalkConfigurationProvider>
+            </KeyboardProvider>
           </BottomSheetModalProvider>
         </GestureHandlerRootView>
       </APIProvider>

@@ -1,5 +1,6 @@
-import { parseISO } from 'date-fns';
-import { useEffect, useState, useContext, createContext } from 'react';
+import { useInterval } from "@/hooks/use-interval";
+import { parseISO } from "date-fns";
+import { useEffect, useState, useContext, createContext } from "react";
 
 export const NowContext = createContext({
   now: new Date(),
@@ -8,13 +9,9 @@ export const NowContext = createContext({
   debug: false,
 });
 
-export const NowProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const NowProvider = ({ children }: { children: React.ReactNode }) => {
   const [debug, setDebug] = useState(false);
-  const [debugStart, setDebugStart] = useState('');
+  const [debugStart, setDebugStart] = useState("");
   const baseDate = debug ? parseISO(debugStart) : new Date();
 
   const [now, setNow] = useState(new Date());
@@ -34,11 +31,7 @@ export const NowProvider = ({
     }
   };
 
-  useEffect(() => {
-    const interval = setInterval(updateNow, 1000);
-
-    return () => clearInterval(interval);
-  });
+  useInterval(updateNow, 1000, { enabled: debug });
 
   useEffect(() => {
     if (debug) {

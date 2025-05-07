@@ -1,50 +1,51 @@
-import { type FragmentOf, graphql, readFragment } from '@/graphql';
-import { useSuspenseQuery } from '@apollo/client';
-import { Link, useLocalSearchParams, Stack } from 'expo-router';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import Markdown from 'react-native-markdown-display';
-import { Timer } from '@/components/timer';
-import { useFeatureFlag } from 'posthog-react-native';
+import { type FragmentOf, graphql, readFragment } from "@/graphql";
+import { useSuspenseQuery } from "@apollo/client";
+import { Link, useLocalSearchParams, Stack } from "expo-router";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import Markdown from "react-native-markdown-display";
+import { Timer } from "@/components/timer";
+import { useFeatureFlag } from "posthog-react-native";
 
-import { useSchedule } from '@/hooks/use-schedule';
-import { parseISO, isAfter, isEqual } from 'date-fns';
-import { SessionItem } from '@/components/session-item';
-import { Image } from 'expo-image';
-import * as Notifications from 'expo-notifications';
-import { Suspense, useEffect, useState } from 'react';
-import BouncyCheckbox from 'react-native-bouncy-checkbox';
-import { useTalkConfiguration } from '@/context/talk-configuration';
-import { isLiveActivityRunning } from '@/modules/activity-controller';
+import { useSchedule } from "@/hooks/use-schedule";
+import { parseISO, isAfter, isEqual } from "date-fns";
+import { SessionItem } from "@/components/session-item";
+import { Image } from "expo-image";
+import * as Notifications from "expo-notifications";
+import { Suspense, useEffect, useState } from "react";
+import BouncyCheckbox from "react-native-bouncy-checkbox";
+import { useTalkConfiguration } from "@/context/talk-configuration";
+import { isLiveActivityRunning } from "@/modules/activity-controller";
 import {
   startLiveActivity,
   stopLiveActivity,
   updateLiveActivity,
-} from '@/modules/activity-controller';
-import { useCurrentConference } from '@/hooks/use-current-conference';
-export const SPEAKERS_FRAGMENT = graphql(
-  `fragment SpeakersFragment on ScheduleItem {
-      speakers {
-          id
-          fullName
-          participant {
-            id
-            photo
-            bio
-            twitterHandle
-            instagramHandle
-            linkedinUrl
-            facebookUrl
-            mastodonHandle
-            website
-          }
+} from "@/modules/activity-controller";
+import { useCurrentConference } from "@/hooks/use-current-conference";
+export const SPEAKERS_FRAGMENT = graphql(`
+  fragment SpeakersFragment on ScheduleItem {
+    speakers {
+      id
+      fullName
+      participant {
+        id
+        photo
+        bio
+        twitterHandle
+        instagramHandle
+        linkedinUrl
+        facebookUrl
+        mastodonHandle
+        website
+      }
     }
   }
-  `,
-);
+`);
 
 function SpeakersView({
   data,
-}: { data: FragmentOf<typeof SPEAKERS_FRAGMENT> }) {
+}: {
+  data: FragmentOf<typeof SPEAKERS_FRAGMENT>;
+}) {
   const { speakers } = readFragment(SPEAKERS_FRAGMENT, data);
 
   return (
@@ -60,7 +61,7 @@ function SpeakersView({
               {speaker?.participant?.photo ? (
                 <Image
                   source={{ uri: speaker.participant?.photo }}
-                  style={{ width: 80, height: 80, backgroundColor: '#f0c674' }}
+                  style={{ width: 80, height: 80, backgroundColor: "#f0c674" }}
                   contentFit="cover"
                 />
               ) : (
@@ -68,7 +69,7 @@ function SpeakersView({
                   style={{
                     width: 80,
                     height: 80,
-                    backgroundColor: '#f0c674',
+                    backgroundColor: "#f0c674",
                   }}
                 />
               )}
@@ -77,7 +78,7 @@ function SpeakersView({
             <View className="flex-1 py-2">
               <Text className="text-xl font-bold">{speaker.fullName}</Text>
               <Text numberOfLines={2}>
-                {speaker.participant?.bio || 'No bio available'}
+                {speaker.participant?.bio || "No bio available"}
               </Text>
             </View>
           </View>
@@ -100,68 +101,68 @@ function AbstractButton({ abstract }: { abstract: string }) {
 }
 
 const TALK_QUERY = graphql(
-  `query Talk($slug: String!, $code: String!, $language: String!) {
-    conference(code: $code) {
-      id
-      talk(slug: $slug) {
+  `
+    query Talk($slug: String!, $code: String!, $language: String!) {
+      conference(code: $code) {
         id
-        title
-        type
-        image
-        highlightColor
-        description
-        elevatorPitch
-        hasLimitedCapacity
-        spacesLeft
-        hasSpacesLeft
-        slidoUrl
-        youtubeVideoId
-  
-        abstract
-        elevatorPitch
-  
-        start
-        end
-  
-        rooms {
+        talk(slug: $slug) {
           id
-          name
-        }
-  
-        language {
-          code
-        }
-  
-        submission {
-          id
-          abstract(language: $language)
-          elevatorPitch(language: $language)
-  
-          duration {
-            id
-            duration
-          }
-  
-          audienceLevel {
+          title
+          type
+          image
+          highlightColor
+          description
+          elevatorPitch
+          hasLimitedCapacity
+          spacesLeft
+          hasSpacesLeft
+          slidoUrl
+          youtubeVideoId
+
+          abstract
+          elevatorPitch
+
+          start
+          end
+
+          rooms {
             id
             name
-          }
-  
-          topic {
-            name
-          }
-  
-          tags {
-            name
-            id
           }
 
+          language {
+            code
+          }
+
+          submission {
+            id
+            abstract(language: $language)
+            elevatorPitch(language: $language)
+
+            duration {
+              id
+              duration
+            }
+
+            audienceLevel {
+              id
+              name
+            }
+
+            topic {
+              name
+            }
+
+            tags {
+              name
+              id
+            }
+          }
+
+          ...SpeakersFragment
         }
-  
-        ...SpeakersFragment
       }
     }
-  }
   `,
   [SPEAKERS_FRAGMENT],
 );
@@ -183,7 +184,7 @@ const useNextSession = (current: {
 }) => {
   const { schedule } = useSchedule();
 
-  const dayString = current.start.split('T')[0];
+  const dayString = current.start.split("T")[0];
 
   const day = schedule[dayString];
 
@@ -196,7 +197,7 @@ const useNextSession = (current: {
   const currentEnd = parseISO(current.end);
 
   const nextSession = room?.sessions.find(({ session }) => {
-    if (session.title.toLowerCase().includes('room change')) {
+    if (session.title.toLowerCase().includes("room change")) {
       return false;
     }
 
@@ -250,7 +251,7 @@ function TalkConfigurationView({ talk }: { talk: { id: string } }) {
           <Text className="text-2xl font-bold">Talk Configuration</Text>
           <View className="flex-1" />
           <Text className="text-black text-lg font-bold">
-            {isOpen ? '👆' : '👇'}
+            {isOpen ? "👆" : "👇"}
           </Text>
         </View>
       </TouchableOpacity>
@@ -262,8 +263,8 @@ function TalkConfigurationView({ talk }: { talk: { id: string } }) {
             fillColor="black"
             text="Has Q&A"
             textStyle={{
-              color: 'black',
-              textDecorationLine: 'none',
+              color: "black",
+              textDecorationLine: "none",
               fontSize: 16,
             }}
             isChecked={hasQa}
@@ -279,30 +280,31 @@ function TalkConfigurationView({ talk }: { talk: { id: string } }) {
   );
 }
 
-import * as TaskManager from 'expo-task-manager';
-import { useSession } from '@/context/auth';
+import * as TaskManager from "expo-task-manager";
+import { useSession } from "@/context/auth";
+import { NowProvider } from "@/components/timer/context";
 
-const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
+const BACKGROUND_NOTIFICATION_TASK = "BACKGROUND-NOTIFICATION-TASK";
 
 TaskManager.defineTask(
   BACKGROUND_NOTIFICATION_TASK,
   async ({ data, error, executionInfo }) => {
-    console.log('Received a notification in the background!');
+    console.log("Received a notification in the background!");
     // Do something with the notification data
   },
 );
 
 Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
 Notifications.addNotificationReceivedListener((notification) => {
-  console.log('Received a notification in the foreground!');
+  console.log("Received a notification in the foreground!");
   // Do something with the notification data
 });
 
 export function Session() {
   const slug = useLocalSearchParams().slug as string;
   const { code } = useCurrentConference();
-  const language = 'en';
-  const enableLiveActivity = useFeatureFlag('enable-live-activity');
+  const language = "en";
+  const enableLiveActivity = useFeatureFlag("enable-live-activity");
 
   const { user } = useSession();
 
@@ -313,7 +315,7 @@ export function Session() {
   const { talk } = data.conference;
 
   if (!talk) {
-    throw new Error('Talk not found');
+    throw new Error("Talk not found");
   }
 
   const [activityIsRunning, setActivityIsRunning] = useState(
@@ -332,25 +334,25 @@ export function Session() {
     }
 
     if (!enableLiveActivity) {
-      console.log('Live activity is disabled');
+      console.log("Live activity is disabled");
 
       return;
     }
 
-    console.log('Live activity is enabled');
+    console.log("Live activity is enabled");
 
     const setupNotifications = async () => {
       const { status: existingStatus } =
         await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
 
-      if (existingStatus !== 'granted') {
+      if (existingStatus !== "granted") {
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
       }
 
-      if (finalStatus !== 'granted') {
-        console.log('Failed to get push token for push notification!');
+      if (finalStatus !== "granted") {
+        console.log("Failed to get push token for push notification!");
         return;
       }
 
@@ -361,7 +363,7 @@ export function Session() {
 
       // Ensure dates are properly formatted as ISO strings
       const formatDate = (date: Date) => {
-        return `${date.toISOString().split('.')[0]}Z`;
+        return `${date.toISOString().split(".")[0]}Z`;
       };
 
       // Check if a Live Activity is already running
@@ -410,7 +412,9 @@ export function Session() {
       <Stack.Screen options={{ title: talk.title }} />
 
       <View className="mb-4 border-b-2">
-        <Timer event={talk} />
+        <NowProvider>
+          <Timer event={talk} />
+        </NowProvider>
       </View>
 
       <View className="border-b-2 pb-4 px-4">
@@ -440,7 +444,7 @@ function Skeleton() {
 
   return (
     <View className="flex-1">
-      <Stack.Screen options={{ title: 'Loading...' }} />
+      <Stack.Screen options={{ title: "Loading..." }} />
 
       <View className="border-b-2">
         <View className="h-16 bg-gray-200" />

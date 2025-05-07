@@ -1,26 +1,20 @@
-import { differenceInHours, format, parseISO } from 'date-fns';
-import { View, Text } from 'react-native';
-import React, { useEffect, useRef } from 'react';
-import { useNow } from './context';
-import { getTimer } from './get-timer';
-import { getDeltaAndStatus } from './get-delta-and-status';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { useTalkConfiguration } from '@/context/talk-configuration';
-import clsx from 'clsx';
-import * as Haptics from 'expo-haptics';
-import { useSession } from '@/context/auth';
+import { differenceInHours, format, parseISO } from "date-fns";
+import { View, Text } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { useNow } from "./context";
+import { getTimer } from "./get-timer";
+import { getDeltaAndStatus } from "./get-delta-and-status";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { useTalkConfiguration } from "@/context/talk-configuration";
+import clsx from "clsx";
+import * as Haptics from "expo-haptics";
+import { useSession } from "@/context/auth";
 
-function TimeLeft({
-  title,
-  timeLeft,
-}: {
-  title: string;
-  timeLeft: string;
-}) {
+function TimeLeft({ title, timeLeft }: { title: string; timeLeft: string }) {
   return (
     <>
       <Text className="text-xl font-bold">{title}</Text>
-      <Text className="text-7xl" style={{ fontVariant: ['tabular-nums'] }}>
+      <Text className="text-7xl" style={{ fontVariant: ["tabular-nums"] }}>
         {timeLeft}
       </Text>
     </>
@@ -88,23 +82,23 @@ function TimerContent({
   const timer = getTimer({ delta });
 
   const statusText = {
-    notStarted: 'Timer not started',
-    upcoming: 'Upcoming',
-    running: 'Time left',
-    runningQA: 'Time left until Q&A',
-    qa: 'Q&A',
-    over: 'Over 🤬',
+    notStarted: "Timer not started",
+    upcoming: "Upcoming",
+    running: "Time left",
+    runningQA: "Time left until Q&A",
+    qa: "Q&A",
+    over: "Over 🤬",
   }[status];
 
   const almostDone =
-    (status === 'running' && delta < 5 * 60 * 1000) ||
-    (status === 'qa' && delta < 1 * 60 * 1000);
+    (status === "running" && delta < 5 * 60 * 1000) ||
+    (status === "qa" && delta < 1 * 60 * 1000);
 
   return (
     <View
-      className={clsx('p-4 justify-center items-center gap-2', {
-        'bg-[#FEFFD3]': !almostDone && status !== 'over',
-        'bg-red-400': almostDone || status === 'over',
+      className={clsx("p-4 justify-center items-center gap-2", {
+        "bg-[#FEFFD3]": !almostDone && status !== "over",
+        "bg-red-400": almostDone || status === "over",
       })}
     >
       <TimeLeft title={statusText} timeLeft={timer} />
@@ -123,7 +117,7 @@ export const Timer = ({
 }) => {
   const { hasQa } = useTalkConfiguration(event.id);
   const { user } = useSession();
-  const { setDebug } = useNow();
+  const { setDebug, now, setOffsetSeconds, debug } = useNow();
 
   const handleDebugToggle = () => {
     if (!user?.canSeeTalkTimer) {
@@ -139,7 +133,6 @@ export const Timer = ({
     }
   };
 
-  const { now, setOffsetSeconds, debug } = useNow();
   const start = parseISO(event.start);
   const end = parseISO(event.end);
   const previousTranslateX = useRef<number | null>(null);
@@ -179,10 +172,10 @@ export const Timer = ({
           <>
             <View className="absolute top-1 right-1 w-3 h-3 rounded-full bg-purple-500" />
             <View className="border-t-2 w-full p-2 bg-purple-200">
-              <Text>Current time: {format(now, 'HH:mm:ss')}</Text>
-              <Text>Talk starts at: {format(start, 'HH:mm:ss')}</Text>
-              <Text>Talk ends at: {format(end, 'HH:mm:ss')}</Text>
-              <Text>Has Q&A: {hasQa ? 'Yes' : 'No'}</Text>
+              <Text>Current time: {format(now, "HH:mm:ss")}</Text>
+              <Text>Talk starts at: {format(start, "HH:mm:ss")}</Text>
+              <Text>Talk ends at: {format(end, "HH:mm:ss")}</Text>
+              <Text>Has Q&A: {hasQa ? "Yes" : "No"}</Text>
             </View>
           </>
         )}
