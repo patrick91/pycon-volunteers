@@ -286,19 +286,19 @@ import { NowProvider } from "@/components/timer/context";
 
 const BACKGROUND_NOTIFICATION_TASK = "BACKGROUND-NOTIFICATION-TASK";
 
-// TaskManager.defineTask(
-//   BACKGROUND_NOTIFICATION_TASK,
-//   async ({ data, error, executionInfo }) => {
-//     console.log("Received a notification in the background!");
-//     // Do something with the notification data
-//   },
-// );
+TaskManager.defineTask(
+  BACKGROUND_NOTIFICATION_TASK,
+  async ({ data, error, executionInfo }) => {
+    console.log("Received a notification in the background!");
+    // Do something with the notification data
+  },
+);
 
-// Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
-// Notifications.addNotificationReceivedListener((notification) => {
-//   console.log("Received a notification in the foreground!");
-//   // Do something with the notification data
-// });
+Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+Notifications.addNotificationReceivedListener((notification) => {
+  console.log("Received a notification in the foreground!");
+  // Do something with the notification data
+});
 
 export function Session() {
   const slug = useLocalSearchParams().slug as string;

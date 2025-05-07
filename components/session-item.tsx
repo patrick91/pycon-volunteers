@@ -48,41 +48,39 @@ export function SessionItem({ session }: SessionItemProps) {
   });
 
   return (
-    <TouchableOpacity onPress={() => router.push(`/schedule/${session.slug}`)}>
-      <View className="p-4 bg-[#FCE8DE] border-black border-b-2 min-h-[140px]">
-        <Text className="font-sans-semibold text-xl" numberOfLines={2}>
-          {session.title}
-        </Text>
-        <Text className="font-sans mb-4">
-          {formattedStart} - {formattedEnd}
-        </Text>
+    <View>
+      <Text className="font-sans-semibold text-xl" numberOfLines={2}>
+        {session.title}
+      </Text>
+      <Text className="font-sans mb-4">
+        {formattedStart} - {formattedEnd}
+      </Text>
 
-        <View className="flex-row gap-2 mt-auto">
-          <View className="flex-row gap-2 flex-1 items-center">
-            <View className="flex-row gap-2">
-              {session.speakers.map((speaker, index) => (
-                <View key={speaker.id}>
-                  <Image
-                    source={{ uri: speaker.participant?.photo }}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: "100%",
-                      borderColor: "black",
-                      borderWidth: 1,
-                      marginLeft: index === 0 ? 0 : -16,
-                    }}
-                  />
-                </View>
-              ))}
-            </View>
-
-            <Text className="font-sans-semibold flex-1">
-              {session.speakers.map((speaker) => speaker.fullName).join(", ")}
-            </Text>
+      <View className="flex-row gap-2 mt-auto">
+        <View className="flex-row gap-2 flex-1 items-center">
+          <View className="flex-row gap-2">
+            {session.speakers.map((speaker, index) => (
+              <View key={speaker.id}>
+                <Image
+                  source={{ uri: speaker.participant?.photo }}
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: "100%",
+                    borderColor: "black",
+                    borderWidth: 1,
+                    marginLeft: index === 0 ? 0 : -16,
+                  }}
+                />
+              </View>
+            ))}
           </View>
+
+          <Text className="font-sans-semibold flex-1">
+            {session.speakers.map((speaker) => speaker.fullName).join(", ")}
+          </Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
