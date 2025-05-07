@@ -3,12 +3,12 @@ import {
   createContext,
   type PropsWithChildren,
   useEffect,
-} from 'react';
-import { useStorageState } from '@/hooks/use-storage-state';
-import { useRouter } from 'expo-router';
-import { usePostHog } from 'posthog-react-native';
-import { graphql } from '@/graphql';
-import { useMutation } from '@apollo/client';
+} from "react";
+import { useStorageState } from "@/hooks/use-storage-state";
+import { useRouter } from "expo-router";
+import { usePostHog } from "posthog-react-native";
+import { graphql } from "@/graphql";
+import { useMutation } from "@apollo/client";
 
 type User = {
   id: string;
@@ -36,9 +36,9 @@ const AuthContext = createContext<{
 // This hook can be used to access the user info.
 export function useSession() {
   const value = useContext(AuthContext);
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== "production") {
     if (!value) {
-      throw new Error('useSession must be wrapped in a <SessionProvider />');
+      throw new Error("useSession must be wrapped in a <SessionProvider />");
     }
   }
 
@@ -57,7 +57,7 @@ export function SessionProvider({
   children,
   onSignOut,
 }: PropsWithChildren<{ onSignOut: () => void }>) {
-  const [[isLoading, sessionData], setSession] = useStorageState('session');
+  const [[isLoading, sessionData], setSession] = useStorageState("session");
   const [signOut, { loading: isSigningOut }] = useMutation(SIGN_OUT_MUTATION);
 
   const posthog = usePostHog();
@@ -66,18 +66,18 @@ export function SessionProvider({
 
   useEffect(() => {
     if (session) {
-      console.log('[Auth] Identifying user', session);
+      console.log("[Auth] Identifying user", session);
 
-      posthog.identify(session.id, {
-        email: session.email,
-        name: session.fullName,
-        conferenceRoles: session.conferenceRoles,
-      });
+      // posthog.identify(session.id, {
+      //   email: session.email,
+      //   name: session.fullName,
+      //   conferenceRoles: session.conferenceRoles,
+      // });
     } else {
-      posthog.reset();
+      // posthog.reset();
     }
 
-    posthog.reloadFeatureFlags();
+    // posthog.reloadFeatureFlags();
   }, [session, posthog]);
 
   const router = useRouter();
@@ -87,8 +87,8 @@ export function SessionProvider({
         signIn: (user: User) => {
           const userInfo = {
             ...user,
-            canSeeSponsorSection: user.conferenceRoles.includes('SPONSOR'),
-            canSeeTalkTimer: user.conferenceRoles.includes('STAFF'),
+            canSeeSponsorSection: user.conferenceRoles.includes("SPONSOR"),
+            canSeeTalkTimer: user.conferenceRoles.includes("STAFF"),
           };
 
           setSession(JSON.stringify(userInfo));
@@ -98,11 +98,11 @@ export function SessionProvider({
 
           setSession(null);
 
-          router.push('/sign-in');
+          router.push("/sign-in");
 
           onSignOut();
 
-          posthog.reset();
+          // posthog.reset();
         },
         isLoading,
         isSigningOut,

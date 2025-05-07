@@ -22,13 +22,8 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { onError } from "@apollo/client/link/error";
-import {
-  AsyncStorageWrapper,
-  persistCache,
-  CachePersistor,
-} from "apollo3-cache-persist";
+import { AsyncStorageWrapper, CachePersistor } from "apollo3-cache-persist";
 import "../global.css";
-import { NowProvider } from "@/components/timer/context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { TalkConfigurationProvider } from "@/context/talk-configuration";
 import { PostHogProvider } from "posthog-react-native";
