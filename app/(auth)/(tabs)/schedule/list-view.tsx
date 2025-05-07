@@ -61,14 +61,10 @@ export function ScheduleListView({
           };
         }
 
-        // Check if this session is already in the time slot (based on title and speakers)
+        // Check if this session is already in the time slot
         // This deduplication might be more relevant for daily view than search results
         const isDuplicate = acc[timeKey].sessions.some(
-          (existingSession) =>
-            existingSession.title === session.title &&
-            existingSession.speakers?.every((speaker) =>
-              session.speakers?.some((s) => s.id === speaker.id),
-            ),
+          (existingSession) => existingSession.id === session.id,
         );
 
         if (!isDuplicate) {
