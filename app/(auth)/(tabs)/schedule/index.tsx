@@ -145,7 +145,7 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
         return (
           <Link
             href={`/schedule/${session.slug}`}
-            className="p-4 min-h-[140px] border-b-2 border-black"
+            className="p-4 min-h-[120px] border-b-2 border-black w-full"
           >
             <SessionItem session={session} />
           </Link>
@@ -155,9 +155,15 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
   );
 }
 export default function SchedulePage() {
-  const [day, setDay] = useState("2025-05-30");
+  const defaultDay = "2025-05-29";
 
   const { days, schedule } = useSchedule();
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const isTodayAConference = days.map((day) => day.dayString).includes(today);
+
+  const [day, setDay] = useState(isTodayAConference ? today : defaultDay);
 
   const daySchedule = schedule[day];
 

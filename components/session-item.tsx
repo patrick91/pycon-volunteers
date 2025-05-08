@@ -48,7 +48,7 @@ export function SessionItem({ session }: SessionItemProps) {
   });
 
   return (
-    <View>
+    <View className="w-full">
       <Text className="font-sans-semibold text-xl" numberOfLines={2}>
         {session.title}
       </Text>

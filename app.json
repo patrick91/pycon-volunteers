@@ -15,9 +15,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSSupportsLiveActivities": true
       },
-      "associatedDomains": [
-        "webcredentials:pycon.it"
-      ],
+      "associatedDomains": ["webcredentials:pycon.it"],
       "appleTeamId": "Z7Q27G3R62"
     },
     "android": {
@@ -64,7 +62,14 @@
         }
       ],
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "$(PRODUCT_NAME) uses the camera to scan participants' QR codes",
+          "recordAudioAndroid": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

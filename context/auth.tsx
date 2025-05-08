@@ -20,7 +20,9 @@ type User = {
 };
 
 const AuthContext = createContext<{
-  signIn: (user: User) => void;
+  signIn: (
+    user: Pick<User, "id" | "email" | "fullName" | "conferenceRoles">,
+  ) => void;
   signOut: () => void;
   user: User | null;
   isLoading: boolean;
@@ -84,7 +86,9 @@ export function SessionProvider({
   return (
     <AuthContext.Provider
       value={{
-        signIn: (user: User) => {
+        signIn: (
+          user: Pick<User, "id" | "email" | "fullName" | "conferenceRoles">,
+        ) => {
           const userInfo = {
             ...user,
             canSeeSponsorSection: user.conferenceRoles.includes("SPONSOR"),
