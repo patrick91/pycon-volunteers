@@ -7,6 +7,7 @@ import { LegendList } from "@legendapp/list";
 import { parseISO } from "date-fns";
 import { useMemo, useState } from "react";
 import { Text, TextInput, View } from "react-native";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 // Define types for the flattened list items
 interface TimeHeaderItem {
@@ -116,12 +117,13 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
       keyExtractor={(item: ScheduleFlatListItem) => item.id}
       recycleItems
       ListHeaderComponent={
-        <View className="border-b-2 border-black">
+        <View className="border-b-2 border-black bg-white flex-row items-center pl-3">
+          <FontAwesome name="search" size={24} color="black" />
           <TextInput
             placeholder="Search talks and speakers..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            className="bg-white p-3"
+            className="bg-white p-3 py-4 flex-1"
             clearButtonMode="while-editing"
           />
         </View>
