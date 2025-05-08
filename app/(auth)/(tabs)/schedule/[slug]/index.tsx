@@ -21,6 +21,7 @@ import {
   updateLiveActivity,
 } from "@/modules/activity-controller";
 import { useCurrentConference } from "@/hooks/use-current-conference";
+
 export const SPEAKERS_FRAGMENT = graphql(`
   fragment SpeakersFragment on ScheduleItem {
     speakers {
@@ -29,6 +30,7 @@ export const SPEAKERS_FRAGMENT = graphql(`
       participant {
         id
         photo
+        photoSmall: photo(size: "small")
         bio
         twitterHandle
         instagramHandle
@@ -58,9 +60,9 @@ function SpeakersView({
         >
           <View className="flex-row gap-2 pr-4 border-b-2">
             <View className="border-r-2">
-              {speaker?.participant?.photo ? (
+              {speaker?.participant?.photoSmall ? (
                 <Image
-                  source={{ uri: speaker.participant?.photo }}
+                  source={{ uri: speaker.participant?.photoSmall }}
                   style={{ width: 80, height: 80, backgroundColor: "#f0c674" }}
                   contentFit="cover"
                 />

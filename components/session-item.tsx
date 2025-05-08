@@ -1,10 +1,7 @@
 import { View, Text } from "react-native";
-import { clsx } from "clsx";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { graphql, type ResultOf } from "@/graphql";
 import { Image } from "expo-image";
-import { TouchableOpacity } from "react-native";
-import { useRoute } from "@react-navigation/native";
 
 export const ITEM_FRAGMENT = graphql(`
   fragment Item on ScheduleItem {
@@ -22,7 +19,8 @@ export const ITEM_FRAGMENT = graphql(`
       id
       fullName
       participant {
-        photo
+        id
+        photo(size: "small")
       }
     }
   }

@@ -1,21 +1,23 @@
-import { View, Text, ScrollView } from 'react-native';
-import { Stack } from 'expo-router';
-import { useLocalSearchParams } from 'expo-router';
-import { graphql, readFragment } from '@/graphql';
-import { useSuspenseQuery } from '@apollo/client';
-import { SPEAKERS_FRAGMENT } from '..';
-import { Image } from 'expo-image';
-import { useCurrentConference } from '@/hooks/use-current-conference';
+import { View, Text, ScrollView } from "react-native";
+import { Stack } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
+import { graphql, readFragment } from "@/graphql";
+import { useSuspenseQuery } from "@apollo/client";
+import { SPEAKERS_FRAGMENT } from "..";
+import { Image } from "expo-image";
+import { useCurrentConference } from "@/hooks/use-current-conference";
+
 const SPEAKERS_QUERY = graphql(
-  `  query Talk($slug: String!, $code: String!) {
-    conference(code: $code) {
+  `
+    query Talk($slug: String!, $code: String!) {
+      conference(code: $code) {
         id
         talk(slug: $slug) {
-            id
-            ...SpeakersFragment
+          id
+          ...SpeakersFragment
         }
+      }
     }
-  }
   `,
   [SPEAKERS_FRAGMENT],
 );
@@ -51,7 +53,7 @@ export default function SpeakerPage() {
           <Image
             source={{ uri: speaker.participant?.photo }}
             style={{
-              width: '100%',
+              width: "100%",
               aspectRatio: 1,
             }}
           />
