@@ -1,7 +1,7 @@
 import { type FragmentOf, graphql, readFragment } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
 import { useLocalSearchParams, Stack } from 'expo-router';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { useCurrentConference } from '@/hooks/use-current-conference';
 const TALK_QUERY = graphql(
@@ -33,11 +33,26 @@ export default function Abstract() {
   }
 
   return (
-    <ScrollView className="flex-1">
-      <View className="px-4 py-4">
-        <Text className="text-2xl font-bold mb-4">{talk.title}</Text>
+    <ScrollView style={styles.scrollView}>
+      <View style={styles.contentView}>
+        <Text style={styles.titleText}>{talk.title}</Text>
         <Markdown>{talk.abstract}</Markdown>
       </View>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
+  contentView: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  titleText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+});

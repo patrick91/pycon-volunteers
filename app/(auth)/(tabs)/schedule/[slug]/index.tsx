@@ -1,26 +1,32 @@
-import { type FragmentOf, graphql, readFragment } from "@/graphql";
-import { useSuspenseQuery } from "@apollo/client";
-import { Link, useLocalSearchParams, Stack } from "expo-router";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import Markdown from "react-native-markdown-display";
-import { Timer } from "@/components/timer";
-import { useFeatureFlag } from "posthog-react-native";
+import { type FragmentOf, graphql, readFragment } from '@/graphql';
+import { useSuspenseQuery } from '@apollo/client';
+import { Link, useLocalSearchParams, Stack } from 'expo-router';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
+import Markdown from 'react-native-markdown-display';
+import { Timer } from '@/components/timer';
+import { useFeatureFlag } from 'posthog-react-native';
 
-import { useSchedule } from "@/hooks/use-schedule";
-import { parseISO, isAfter, isEqual } from "date-fns";
-import { SessionItem } from "@/components/session-item";
-import { Image } from "expo-image";
-import * as Notifications from "expo-notifications";
-import { Suspense, useEffect, useState } from "react";
-import BouncyCheckbox from "react-native-bouncy-checkbox";
-import { useTalkConfiguration } from "@/context/talk-configuration";
-import { isLiveActivityRunning } from "@/modules/activity-controller";
+import { useSchedule } from '@/hooks/use-schedule';
+import { parseISO, isAfter, isEqual } from 'date-fns';
+import { SessionItem } from '@/components/session-item';
+import { Image } from 'expo-image';
+import * as Notifications from 'expo-notifications';
+import { Suspense, useEffect, useState } from 'react';
+import BouncyCheckbox from 'react-native-bouncy-checkbox';
+import { useTalkConfiguration } from '@/context/talk-configuration';
+import { isLiveActivityRunning } from '@/modules/activity-controller';
 import {
   startLiveActivity,
   stopLiveActivity,
   updateLiveActivity,
-} from "@/modules/activity-controller";
-import { useCurrentConference } from "@/hooks/use-current-conference";
+} from '@/modules/activity-controller';
+import { useCurrentConference } from '@/hooks/use-current-conference';
 
 export const SPEAKERS_FRAGMENT = graphql(`
   fragment SpeakersFragment on ScheduleItem {
@@ -58,29 +64,23 @@ function SpeakersView({
           key={speaker.id}
           relativeToDirectory
         >
-          <View className="flex-row gap-2 pr-4 border-b-2">
-            <View className="border-r-2">
+          <View style={styles.speakerItemContainer}>
+            <View style={styles.speakerImageOuterContainer}>
               {speaker?.participant?.photoSmall ? (
                 <Image
-                  source={{ uri: speaker.participant?.photoSmall }}
-                  style={{ width: 80, height: 80, backgroundColor: "#f0c674" }}
+                  source={{ uri: speaker.participant?.photoSmall || undefined }}
+                  style={styles.speakerImage}
                   contentFit="cover"
                 />
               ) : (
-                <View
-                  style={{
-                    width: 80,
-                    height: 80,
-                    backgroundColor: "#f0c674",
-                  }}
-                />
+                <View style={styles.speakerImagePlaceholder} />
               )}
             </View>
 
-            <View className="flex-1 py-2">
-              <Text className="text-xl font-bold">{speaker.fullName}</Text>
+            <View style={styles.speakerInfoContainer}>
+              <Text style={styles.speakerName}>{speaker.fullName}</Text>
               <Text numberOfLines={2}>
-                {speaker.participant?.bio || "No bio available"}
+                {speaker.participant?.bio || 'No bio available'}
               </Text>
             </View>
           </View>
@@ -95,9 +95,9 @@ function AbstractButton({ abstract }: { abstract: string }) {
     <Link
       href="./abstract"
       relativeToDirectory
-      className="bg-[#FCE8DE] p-4 border-2 border-black"
+      style={styles.abstractButtonLink}
     >
-      <Text className="text-black text-lg font-bold">Abstract</Text>
+      <Text style={styles.abstractButtonText}>Abstract</Text>
     </Link>
   );
 }
@@ -171,8 +171,8 @@ const TALK_QUERY = graphql(
 
 const SectionButton = ({ title }: { title: string }) => {
   return (
-    <TouchableOpacity className="bg-[#FCE8DE] p-4 border-2 border-black">
-      <Text className="text-black text-lg font-bold">{title}</Text>
+    <TouchableOpacity style={styles.sectionButtonTouchableOpacity}>
+      <Text style={styles.sectionButtonText}>{title}</Text>
     </TouchableOpacity>
   );
 };
@@ -186,7 +186,7 @@ const useNextSession = (current: {
 }) => {
   const { schedule } = useSchedule();
 
-  const dayString = current.start.split("T")[0];
+  const dayString = current.start.split('T')[0];
 
   const day = schedule[dayString];
 
@@ -199,7 +199,7 @@ const useNextSession = (current: {
   const currentEnd = parseISO(current.end);
 
   const nextSession = room?.sessions.find(({ session }) => {
-    if (session.title.toLowerCase().includes("room change")) {
+    if (session.title.toLowerCase().includes('room change')) {
       return false;
     }
 
@@ -231,10 +231,10 @@ function UpNextView({
   }
 
   return (
-    <View className="px-4 mt-4 border-t-2 pt-4 gap-2">
-      <Text className="text-2xl font-bold">Up next:</Text>
+    <View style={styles.upNextContainer}>
+      <Text style={styles.upNextTitle}>Up next:</Text>
       <Link href={`/schedule/${nextSession.session.slug}`}>
-        <View className="border-2 border-black p-3 min-h-[110px] bg-[#FCE8DE] w-full">
+        <View style={styles.upNextSessionItemWrapper}>
           <SessionItem session={nextSession.session} />
         </View>
       </Link>
@@ -247,28 +247,24 @@ function TalkConfigurationView({ talk }: { talk: { id: string } }) {
   const { hasQa, setHasQa } = useTalkConfiguration(talk.id);
 
   return (
-    <View className="border-b-2 pb-4 pt-4 px-4">
+    <View style={styles.talkConfigContainer}>
       <TouchableOpacity onPress={() => setIsOpen(!isOpen)}>
-        <View className="flex-row gap-2">
-          <Text className="text-2xl font-bold">Talk Configuration</Text>
-          <View className="flex-1" />
-          <Text className="text-black text-lg font-bold">
-            {isOpen ? "👆" : "👇"}
+        <View style={styles.talkConfigHeader}>
+          <Text style={styles.talkConfigTitle}>Talk Configuration</Text>
+          <View style={styles.flexOne} />
+          <Text style={styles.talkConfigToggleText}>
+            {isOpen ? '👆' : '👇'}
           </Text>
         </View>
       </TouchableOpacity>
 
       {isOpen && (
-        <View className="mt-4">
+        <View style={styles.talkConfigContent}>
           <BouncyCheckbox
             size={25}
             fillColor="black"
             text="Has Q&A"
-            textStyle={{
-              color: "black",
-              textDecorationLine: "none",
-              fontSize: 16,
-            }}
+            textStyle={styles.bouncyCheckboxText}
             isChecked={hasQa}
             useBuiltInState={false}
             innerIconStyle={{ borderWidth: 2 }}
@@ -282,31 +278,31 @@ function TalkConfigurationView({ talk }: { talk: { id: string } }) {
   );
 }
 
-import * as TaskManager from "expo-task-manager";
-import { useSession } from "@/context/auth";
-import { NowProvider } from "@/components/timer/context";
+import * as TaskManager from 'expo-task-manager';
+import { useSession } from '@/context/auth';
+import { NowProvider } from '@/components/timer/context';
 
-const BACKGROUND_NOTIFICATION_TASK = "BACKGROUND-NOTIFICATION-TASK";
+const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
 
 TaskManager.defineTask(
   BACKGROUND_NOTIFICATION_TASK,
   async ({ data, error, executionInfo }) => {
-    console.log("Received a notification in the background!");
+    console.log('Received a notification in the background!');
     // Do something with the notification data
   },
 );
 
 Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
 Notifications.addNotificationReceivedListener((notification) => {
-  console.log("Received a notification in the foreground!");
+  console.log('Received a notification in the foreground!');
   // Do something with the notification data
 });
 
 export function Session() {
   const slug = useLocalSearchParams().slug as string;
   const { code } = useCurrentConference();
-  const language = "en";
-  const enableLiveActivity = useFeatureFlag("enable-live-activity");
+  const language = 'en';
+  const enableLiveActivity = useFeatureFlag('enable-live-activity');
 
   const { user } = useSession();
 
@@ -317,7 +313,7 @@ export function Session() {
   const { talk } = data.conference;
 
   if (!talk) {
-    throw new Error("Talk not found");
+    throw new Error('Talk not found');
   }
 
   const [activityIsRunning, setActivityIsRunning] = useState(
@@ -336,25 +332,25 @@ export function Session() {
     }
 
     if (!enableLiveActivity) {
-      console.log("Live activity is disabled");
+      console.log('Live activity is disabled');
 
       return;
     }
 
-    console.log("Live activity is enabled");
+    console.log('Live activity is enabled');
 
     const setupNotifications = async () => {
       const { status: existingStatus } =
         await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
 
-      if (existingStatus !== "granted") {
+      if (existingStatus !== 'granted') {
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
       }
 
-      if (finalStatus !== "granted") {
-        console.log("Failed to get push token for push notification!");
+      if (finalStatus !== 'granted') {
+        console.log('Failed to get push token for push notification!');
         return;
       }
 
@@ -365,7 +361,7 @@ export function Session() {
 
       // Ensure dates are properly formatted as ISO strings
       const formatDate = (date: Date) => {
-        return `${date.toISOString().split(".")[0]}Z`;
+        return `${date.toISOString().split('.')[0]}Z`;
       };
 
       // Check if a Live Activity is already running
@@ -407,32 +403,31 @@ export function Session() {
 
   return (
     <ScrollView
-      className="flex-1"
-      // TODO: figure out how to get these programmatically
+      style={styles.flexOne}
       contentContainerStyle={{ paddingBottom: 100 }}
     >
       <Stack.Screen options={{ title: talk.title }} />
 
-      <View className="mb-4 border-b-2">
+      <View style={styles.timerContainer}>
         <NowProvider>
           <Timer event={talk} />
         </NowProvider>
       </View>
 
-      <View className="border-b-2 pb-4 px-4">
-        <Text className="text-4xl font-bold">{talk.title}</Text>
+      <View style={styles.titleContainer}>
+        <Text style={styles.mainTitleText}>{talk.title}</Text>
       </View>
 
       <SpeakersView data={talk} />
 
       {user?.canSeeTalkTimer && <TalkConfigurationView talk={talk} />}
 
-      <View className="px-4 mt-4">
-        <Text className="text-2xl font-bold">Elevator Pitch</Text>
+      <View style={styles.elevatorPitchContainer}>
+        <Text style={styles.elevatorPitchTitle}>Elevator Pitch</Text>
         <Markdown>{talk.elevatorPitch}</Markdown>
       </View>
 
-      <View className="px-4 mt-4 flex-row gap-2">
+      <View style={styles.abstractButtonContainer}>
         <AbstractButton abstract={talk.abstract} />
       </View>
 
@@ -445,23 +440,23 @@ function Skeleton() {
   const { user } = useSession();
 
   return (
-    <View className="flex-1">
-      <Stack.Screen options={{ title: "Loading..." }} />
+    <View style={styles.flexOne}>
+      <Stack.Screen options={{ title: 'Loading...' }} />
 
-      <View className="border-b-2">
-        <View className="h-16 bg-gray-200" />
+      <View style={styles.skeletonBorderBottom}>
+        <View style={styles.skeletonTimerBar} />
       </View>
 
       {/* Speakers skeleton */}
-      <View className="border-b-2">
+      <View style={styles.skeletonBorderBottom}>
         {[1, 2].map((i) => (
-          <View key={i} className="flex-row gap-2 pr-4 border-b-2">
-            <View className="border-r-2">
-              <View className="w-20 h-20 bg-gray-200" />
+          <View key={i} style={styles.skeletonSpeakerItem}>
+            <View style={styles.skeletonSpeakerImageContainer}>
+              <View style={styles.skeletonSpeakerImage} />
             </View>
-            <View className="flex-1 py-2">
-              <View className="h-6 w-1/2 bg-gray-200 rounded mb-2" />
-              <View className="h-4 w-3/4 bg-gray-200 rounded" />
+            <View style={styles.skeletonSpeakerInfo}>
+              <View style={styles.skeletonTextShort} />
+              <View style={styles.skeletonTextLong} />
             </View>
           </View>
         ))}
@@ -469,32 +464,32 @@ function Skeleton() {
 
       {/* Talk Configuration skeleton */}
       {user?.canSeeTalkTimer && (
-        <View className="border-b-2 pb-4 pt-4 px-4">
-          <View className="h-8 w-1/2 bg-gray-200 rounded" />
+        <View style={styles.skeletonTalkConfigContainer}>
+          <View style={styles.skeletonHeaderTitle} />
         </View>
       )}
 
       {/* Elevator Pitch skeleton */}
-      <View className="mb-4 px-4 mt-4">
-        <View className="h-8 w-1/3 bg-gray-200 rounded mb-4" />
-        <View className="h-4 w-full bg-gray-200 rounded mb-2" />
-        <View className="h-4 w-5/6 bg-gray-200 rounded mb-2" />
-        <View className="h-4 w-4/6 bg-gray-200 rounded" />
+      <View style={styles.skeletonElevatorPitchContainer}>
+        <View style={styles.skeletonElevatorPitchTitle} />
+        <View style={styles.skeletonTextFull} />
+        <View style={styles.skeletonTextMedium} />
+        <View style={styles.skeletonTextShorter} />
       </View>
 
       {/* Section buttons skeleton */}
-      <View className="flex-row gap-2 px-4 flex-1">
-        <View className="h-12 flex-1 bg-gray-200 rounded" />
-        <View className="h-12 flex-1 bg-gray-200 rounded" />
-        <View className="h-12 flex-1 bg-gray-200 rounded" />
+      <View style={styles.skeletonSectionButtonsContainer}>
+        <View style={styles.skeletonSectionButton} />
+        <View style={styles.skeletonSectionButton} />
+        <View style={styles.skeletonSectionButton} />
       </View>
 
       {/* Up Next skeleton */}
-      <View className="px-4 mt-4 border-t-2 pt-4 gap-2">
-        <View className="h-8 w-1/4 bg-gray-200 rounded mb-2" />
-        <View className="border-2 border-black p-3 min-h-[110px] bg-gray-100 w-full">
-          <View className="h-6 w-3/4 bg-gray-200 rounded mb-2" />
-          <View className="h-4 w-1/2 bg-gray-200 rounded" />
+      <View style={styles.skeletonUpNextContainer}>
+        <View style={styles.skeletonUpNextTitle} />
+        <View style={styles.skeletonUpNextCard}>
+          <View style={styles.skeletonTextMediumBold} />
+          <View style={styles.skeletonTextShort} />
         </View>
       </View>
     </View>
@@ -508,3 +503,252 @@ export default function SessionPage() {
     </Suspense>
   );
 }
+
+const styles = StyleSheet.create({
+  flexOne: { flex: 1 },
+  speakerItemContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingRight: 16,
+    borderBottomWidth: 2,
+  },
+  speakerImageOuterContainer: {
+    borderRightWidth: 2,
+  },
+  speakerImage: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#f0c674',
+  },
+  speakerImagePlaceholder: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#f0c674',
+  },
+  speakerInfoContainer: {
+    flex: 1,
+    paddingVertical: 8,
+  },
+  speakerName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  abstractButtonLink: {
+    backgroundColor: '#FCE8DE',
+    padding: 16,
+    borderWidth: 2,
+    borderColor: 'black',
+  },
+  abstractButtonText: {
+    color: 'black',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  sectionButtonTouchableOpacity: {
+    backgroundColor: '#FCE8DE',
+    padding: 16,
+    borderWidth: 2,
+    borderColor: 'black',
+  },
+  sectionButtonText: {
+    color: 'black',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  upNextContainer: {
+    paddingHorizontal: 16,
+    marginTop: 16,
+    borderTopWidth: 2,
+    paddingTop: 16,
+    gap: 8,
+  },
+  upNextTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  upNextSessionItemWrapper: {
+    borderWidth: 2,
+    borderColor: 'black',
+    padding: 12,
+    minHeight: 110,
+    backgroundColor: '#FCE8DE',
+    width: '100%',
+  },
+  talkConfigContainer: {
+    borderBottomWidth: 2,
+    paddingBottom: 16,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+  },
+  talkConfigHeader: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  talkConfigTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  talkConfigToggleText: {
+    color: 'black',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  talkConfigContent: {
+    marginTop: 16,
+  },
+  bouncyCheckboxText: {
+    color: 'black',
+    textDecorationLine: 'none',
+    fontSize: 16,
+  },
+  timerContainer: {
+    marginBottom: 16,
+    borderBottomWidth: 2,
+  },
+  titleContainer: {
+    borderBottomWidth: 2,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+  },
+  mainTitleText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+  },
+  elevatorPitchContainer: {
+    paddingHorizontal: 16,
+    marginTop: 16,
+  },
+  elevatorPitchTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  abstractButtonContainer: {
+    paddingHorizontal: 16,
+    marginTop: 16,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  skeletonBorderBottom: {
+    borderBottomWidth: 2,
+  },
+  skeletonTimerBar: {
+    height: 64,
+    backgroundColor: '#E5E7EB',
+  },
+  skeletonSpeakerItem: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingRight: 16,
+    borderBottomWidth: 2,
+  },
+  skeletonSpeakerImageContainer: {
+    borderRightWidth: 2,
+  },
+  skeletonSpeakerImage: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#E5E7EB',
+  },
+  skeletonSpeakerInfo: {
+    flex: 1,
+    paddingVertical: 8,
+  },
+  skeletonTextShort: {
+    height: 24,
+    width: '50%',
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  skeletonTextLong: {
+    height: 16,
+    width: '75%',
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+  },
+  skeletonTalkConfigContainer: {
+    borderBottomWidth: 2,
+    paddingBottom: 16,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+  },
+  skeletonHeaderTitle: {
+    height: 32,
+    width: '50%',
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+  },
+  skeletonElevatorPitchContainer: {
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    marginTop: 16,
+  },
+  skeletonElevatorPitchTitle: {
+    height: 32,
+    width: '33.3333%',
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    marginBottom: 16,
+  },
+  skeletonTextFull: {
+    height: 16,
+    width: '100%',
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  skeletonTextMedium: {
+    height: 16,
+    width: '83.3333%',
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  skeletonTextShorter: {
+    height: 16,
+    width: '66.6667%',
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+  },
+  skeletonSectionButtonsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    flex: 1,
+  },
+  skeletonSectionButton: {
+    height: 48,
+    flex: 1,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+  },
+  skeletonUpNextContainer: {
+    paddingHorizontal: 16,
+    marginTop: 16,
+    borderTopWidth: 2,
+    paddingTop: 16,
+    gap: 8,
+  },
+  skeletonUpNextTitle: {
+    height: 32,
+    width: '25%',
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  skeletonUpNextCard: {
+    borderWidth: 2,
+    borderColor: 'black',
+    padding: 12,
+    minHeight: 110,
+    backgroundColor: '#F3F4F6',
+    width: '100%',
+  },
+  skeletonTextMediumBold: {
+    height: 24,
+    width: '75%',
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+});

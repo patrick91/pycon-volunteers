@@ -2,7 +2,7 @@ import { UserProfile } from '@/components/sponsors/user-profile';
 import { graphql } from '@/graphql';
 import { useQuery } from '@apollo/client';
 import { useLocalSearchParams } from 'expo-router';
-import { View, Text, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, SafeAreaView, ScrollView, StyleSheet } from 'react-native';
 
 const BADGE_SCAN_QUERY = graphql(`
   query BadgeScan($id: ID!) {
@@ -33,14 +33,24 @@ export default function ScanPage() {
   }
 
   return (
-    <SafeAreaView className="flex-1">
-      <ScrollView className="flex-1 px-6">
+    <SafeAreaView style={styles.flexOne}>
+      <ScrollView style={styles.scrollView}>
         <UserProfile
           badgeId={data.badgeScan.id}
           attendee={data?.badgeScan?.attendee}
-          notes={data?.badgeScan?.notes}
+          notes={data?.badgeScan?.notes || ''}
         />
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  flexOne: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+});

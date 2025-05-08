@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Textarea } from '../form/textarea';
 import { useForm } from 'react-hook-form';
 import { Button } from '../form/button';
@@ -59,15 +59,15 @@ export const UserProfile = ({
 
   return (
     <View>
-      <Text className="text-2xl font-bold text-gray-800 mt-4">Full name</Text>
+      <Text style={styles.headerText}>Full name</Text>
 
-      <Text className="text-gray-600 mt-2 text-xl">{attendee.fullName}</Text>
+      <Text style={styles.valueText}>{attendee.fullName}</Text>
 
-      <Text className="text-2xl font-bold text-gray-800 mt-4">Email</Text>
+      <Text style={styles.headerText}>Email</Text>
 
-      <Text className="text-gray-600 mt-2 text-xl">{attendee.email}</Text>
+      <Text style={styles.valueText}>{attendee.email}</Text>
 
-      <Text className="text-2xl font-bold text-gray-800 mt-4">Notes</Text>
+      <Text style={styles.headerText}>Notes</Text>
 
       <Textarea name="notes" control={control} defaultValue={notes} />
 
@@ -75,8 +75,28 @@ export const UserProfile = ({
         Update notes
       </Button>
 
-      {data && <Text className="text-green-700">Notes updated! 👍</Text>}
-      {error && <Text className="text-red-500">{error.message}</Text>}
+      {data && <Text style={styles.successText}>Notes updated! 👍</Text>}
+      {error && <Text style={styles.errorText}>{error.message}</Text>}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2D3748',
+    marginTop: 16,
+  },
+  valueText: {
+    color: '#718096',
+    marginTop: 8,
+    fontSize: 20,
+  },
+  successText: {
+    color: '#2F855A',
+  },
+  errorText: {
+    color: '#E53E3E',
+  },
+});

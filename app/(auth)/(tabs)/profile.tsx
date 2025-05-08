@@ -1,4 +1,4 @@
-import { View, Text, SafeAreaView } from 'react-native';
+import { View, Text, SafeAreaView, StyleSheet } from 'react-native';
 import { graphql, readFragment, type FragmentOf } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
 import { useSession } from '@/context/auth';
@@ -15,7 +15,7 @@ export const USER_PROFILE_FRAGMENT = graphql(`
   }
 `);
 
-const USER_PROFILE_QUERY = graphql(
+export const USER_PROFILE_QUERY = graphql(
   `
   query UserProfile($conferenceCode: String!) {
     me {
@@ -38,29 +38,29 @@ const ProfileInfo = ({
   );
 
   return (
-    <View className="p-4">
-      <Text className="text-2xl font-bold">Hello {fullName}</Text>
+    <View style={styles.profileInfoContainer}>
+      <Text style={styles.greetingText}>Hello {fullName}</Text>
 
-      <View className="flex gap-2 mt-4">
-        <Text className="font-bold">Email</Text>
+      <View style={styles.infoSection}>
+        <Text style={styles.infoLabel}>Email</Text>
         <Text>{email}</Text>
       </View>
 
-      <View className="flex gap-2 mt-4">
-        <Text className="font-bold">Conference Roles</Text>
+      <View style={styles.infoSection}>
+        <Text style={styles.infoLabel}>Conference Roles</Text>
         <Text>
           {conferenceRoles.length > 0 ? conferenceRoles.join(', ') : 'None'}
         </Text>
       </View>
 
       {conferenceRoles.includes('STAFF') && (
-        <View className="flex gap-2 mt-4">
-          <Text className="font-bold">Feature Flags</Text>
+        <View style={styles.infoSection}>
+          <Text style={styles.infoLabel}>Feature Flags</Text>
           <Text>{JSON.stringify(posthog.getFeatureFlags())}</Text>
         </View>
       )}
 
-      <View className="mt-4">
+      <View style={styles.buttonContainer}>
         <Button
           onPress={() => signOut()}
           disabled={isSigningOut}
@@ -83,8 +83,33 @@ export default function Profile() {
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={styles.safeArea}>
       <ProfileInfo data={data.me} />
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+  profileInfoContainer: {
+    padding: 16,
+  },
+  greetingText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  infoSection: {
+    gap: 8,
+    marginTop: 16,
+  },
+  infoLabel: {
+    fontWeight: 'bold',
+  },
+  buttonContainer: {
+    marginTop: 16,
+  },
+  // Other styles will be added later
+});

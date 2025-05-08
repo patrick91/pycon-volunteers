@@ -1,14 +1,14 @@
 import React from 'react';
 import { type Control, useController } from 'react-hook-form';
-import { TextInput, type TextInputProps, View } from 'react-native';
+import { TextInput, type TextInputProps, View, StyleSheet } from 'react-native';
 
 import { ErrorMessage } from './error-message';
-import clsx from 'clsx';
 
 export const Textarea = ({
   name,
   control,
   error,
+  style,
   ...props
 }: TextInputProps & {
   name: string;
@@ -21,18 +21,13 @@ export const Textarea = ({
   });
 
   return (
-    <View className="mb-8">
+    <View style={styles.container}>
       <TextInput
         value={field.value}
         onChangeText={field.onChange}
         multiline={true}
         {...props}
-        className={clsx(
-          'text-lg border-b-2 border-black pb-2 leading-[1.2] font-medium border-black',
-          {
-            'mb-2 text-red-500 border-red-500': !!error,
-          },
-        )}
+        style={[styles.textInputBase, error && styles.textInputError, style]}
       />
 
       {error?.map((error, index) => (
@@ -41,3 +36,22 @@ export const Textarea = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 32,
+  },
+  textInputBase: {
+    fontSize: 18,
+    borderBottomWidth: 2,
+    borderColor: 'black',
+    paddingBottom: 8,
+    lineHeight: 18 * 1.2,
+    fontWeight: '500',
+  },
+  textInputError: {
+    marginBottom: 8,
+    color: '#E53E3E',
+    borderColor: '#E53E3E',
+  },
+});

@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   Text,
@@ -7,23 +7,24 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
-} from "react-native";
-import { z } from "zod";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/form/button";
-import { graphql, readFragment } from "@/graphql";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Logo } from "@/components/logo";
-import { useMutation } from "@apollo/client";
-import { useRouter } from "expo-router";
-import { useSession } from "@/context/auth";
-import { USER_PROFILE_FRAGMENT } from "./(auth)/(tabs)/profile";
-import { useCurrentConference } from "@/hooks/use-current-conference";
+  StyleSheet,
+} from 'react-native';
+import { z } from 'zod';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/form/button';
+import { graphql, readFragment } from '@/graphql';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Logo } from '@/components/logo';
+import { useMutation } from '@apollo/client';
+import { useRouter } from 'expo-router';
+import { useSession } from '@/context/auth';
+import { USER_PROFILE_FRAGMENT } from './(auth)/(tabs)/profile';
+import { useCurrentConference } from '@/hooks/use-current-conference';
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().email('Invalid email address'),
   password: z.string(),
 });
 
@@ -80,25 +81,25 @@ export default function SignIn() {
       variables: { ...data, conferenceCode: code },
     });
 
-    if (result.data?.login.__typename === "LoginSuccess") {
+    if (result.data?.login.__typename === 'LoginSuccess') {
       const user = readFragment(USER_PROFILE_FRAGMENT, result.data.login.user);
 
       signIn(user);
 
-      router.replace("/(auth)/(tabs)");
-    } else if (result.data?.login.__typename === "LoginErrors") {
+      router.replace('/(auth)/(tabs)');
+    } else if (result.data?.login.__typename === 'LoginErrors') {
       if (result.data.login.errors.email) {
-        setError("email", {
-          message: result.data.login.errors.email.join(", "),
+        setError('email', {
+          message: result.data.login.errors.email.join(', '),
         });
       }
       if (result.data.login.errors.password) {
-        setError("password", {
-          message: result.data.login.errors.password.join(", "),
+        setError('password', {
+          message: result.data.login.errors.password.join(', '),
         });
       }
-    } else if (result.data?.login.__typename === "WrongEmailOrPassword") {
-      setError("password", {
+    } else if (result.data?.login.__typename === 'WrongEmailOrPassword') {
+      setError('password', {
         message: result.data.login.message,
       });
     }
@@ -106,20 +107,21 @@ export default function SignIn() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      className="flex-1 bg-white"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={styles.keyboardAvoidingView}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
-          contentContainerClassName="flex-1 p-6 justify-between"
+          contentContainerStyle={styles.scrollViewContentContainer}
           keyboardShouldPersistTaps="handled"
-          style={{ paddingBottom: insets.bottom, paddingTop: insets.top }}
+          style={[
+            styles.scrollView,
+            { paddingBottom: insets.bottom, paddingTop: insets.top },
+          ]}
         >
-          <View className="gap-6">
+          <View style={styles.logoContainer}>
             <Logo width={150} />
-            <Text className="font-sans-semibold text-black text-5xl">
-              Login
-            </Text>
+            <Text style={styles.loginTitle}>Login</Text>
           </View>
 
           <View>
@@ -127,7 +129,7 @@ export default function SignIn() {
               control={control}
               name="email"
               render={({ field: { onChange, value } }) => (
-                <View className="mb-8">
+                <View style={styles.inputContainer}>
                   <Label>Email</Label>
                   <Input
                     placeholder="guido@python.org"
@@ -138,9 +140,7 @@ export default function SignIn() {
                     textContentType="emailAddress"
                   />
                   {errors.email && (
-                    <Text className="mt-2 text-red-500 font-sans-semibold text-sm">
-                      {errors.email.message}
-                    </Text>
+                    <Text style={styles.errorText}>{errors.email.message}</Text>
                   )}
                 </View>
               )}
@@ -162,7 +162,7 @@ export default function SignIn() {
                     textContentType="password"
                   />
                   {errors.password && (
-                    <Text className="mt-2 text-red-500 font-sans-semibold text-sm">
+                    <Text style={styles.errorText}>
                       {errors.password.message}
                     </Text>
                   )}
@@ -183,3 +183,36 @@ export default function SignIn() {
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  keyboardAvoidingView: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+  scrollViewContentContainer: {
+    flex: 1,
+    padding: 24, // p-6
+    justifyContent: 'space-between',
+  },
+  scrollView: {
+    // Existing inline styles for paddingBottom and paddingTop will be merged
+  },
+  logoContainer: {
+    gap: 24, // gap-6
+  },
+  loginTitle: {
+    fontFamily: 'sans-semibold', // font-sans-semibold - Note: React Native requires specific font family names. 'sans-semibold' might need adjustment based on actual font setup.
+    color: 'black',
+    fontSize: 48, // text-5xl
+    lineHeight: 1 * 48, // Assuming default line height multiple
+  },
+  inputContainer: {
+    marginBottom: 32, // mb-8
+  },
+  errorText: {
+    marginTop: 8, // mt-2
+    color: '#F56565', // text-red-500
+    fontFamily: 'sans-semibold', // font-sans-semibold
+    fontSize: 14, // text-sm
+  },
+});

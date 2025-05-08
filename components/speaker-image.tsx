@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
-import { Dimensions, Modal, TouchableOpacity } from 'react-native';
+import { Dimensions, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -117,11 +117,10 @@ const ImageModal = ({
       visible={visible}
       onRequestClose={onClose}
     >
-      <GestureHandlerRootView className="flex-1">
+      <GestureHandlerRootView style={styles.flexOne}>
         <GestureDetector gesture={tapGesture}>
           <Animated.View
-            style={[backgroundAnimatedStyle]}
-            className="bg-black/80"
+            style={[styles.modalBackground, backgroundAnimatedStyle]}
           >
             <GestureDetector gesture={composedGestures}>
               <Animated.View
@@ -146,6 +145,18 @@ const ImageModal = ({
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  flexOne: {
+    flex: 1,
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export function SpeakerImage({
   imageUri,

@@ -1,23 +1,23 @@
-import { Stack, Link } from "expo-router";
-import { DaySelector } from "@/components/day-selector";
+import { Stack, Link } from 'expo-router';
+import { DaySelector } from '@/components/day-selector';
 
-import { type Item, SessionItem } from "@/components/session-item";
-import { useSchedule, type DaySchedule } from "@/hooks/use-schedule";
-import { LegendList } from "@legendapp/list";
-import { parseISO } from "date-fns";
-import { useCallback, useMemo, useState } from "react";
-import { Text, TextInput, View } from "react-native";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { type Item, SessionItem } from '@/components/session-item';
+import { useSchedule, type DaySchedule } from '@/hooks/use-schedule';
+import { LegendList } from '@legendapp/list';
+import { parseISO } from 'date-fns';
+import { useCallback, useMemo, useState } from 'react';
+import { Text, TextInput, View, StyleSheet } from 'react-native';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 // Define types for the flattened list items
 interface TimeHeaderItem {
-  type: "time_header";
+  type: 'time_header';
   time: Date;
   id: string;
 }
 
 interface SessionDisplayItem {
-  type: "session_item";
+  type: 'session_item';
   session: Item; // Item is already defined from '@/components/session-item'
   id: string;
 }
@@ -25,7 +25,7 @@ interface SessionDisplayItem {
 type ScheduleFlatListItem = TimeHeaderItem | SessionDisplayItem;
 
 function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { searchAllTalks } = useSchedule();
 
@@ -36,7 +36,7 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
     // If no search query, extract all items from the daily schedule
     const dailyItems: Item[] = [];
     for (const room of schedule.rooms) {
-      if (typeof room !== "string") {
+      if (typeof room !== 'string') {
         for (const scheduleSession of room.sessions) {
           dailyItems.push(scheduleSession.session);
         }
@@ -86,14 +86,14 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
     const newFlatList: ScheduleFlatListItem[] = [];
     for (const slot of sortedTimeSlots) {
       newFlatList.push({
-        type: "time_header",
+        type: 'time_header',
         time: slot.time,
         id: slot.time.toISOString(),
       });
 
       for (const session of slot.sessions) {
         newFlatList.push({
-          type: "session_item",
+          type: 'session_item',
           session: session,
           id: `session-${session.id}`,
         });
@@ -104,13 +104,13 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
 
   const keyExtractor = useCallback((item: ScheduleFlatListItem) => item.id, []);
   const renderItem = useCallback(({ item }: { item: ScheduleFlatListItem }) => {
-    if (item.type === "time_header") {
+    if (item.type === 'time_header') {
       return (
-        <View className="bg-white p-4 border-b-2 border-black">
-          <Text className="text-lg font-bold">
+        <View style={styles.timeHeaderContainer}>
+          <Text style={styles.timeHeaderText}>
             {item.time.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </Text>
         </View>
@@ -120,10 +120,7 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
     const { session } = item;
 
     return (
-      <Link
-        href={`/schedule/${session.slug}`}
-        className="p-4 min-h-[120px] border-b-2 border-black w-full"
-      >
+      <Link href={`/schedule/${session.slug}`} style={styles.sessionLink}>
         <SessionItem session={session} />
       </Link>
     );
@@ -131,11 +128,11 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
 
   return (
     <LegendList
-      className="flex-1 bg-[#FAF5F3]"
+      style={styles.legendList}
       contentContainerStyle={{ paddingBottom: 86 }}
-      data={flatScheduleItems} // Use the new flat list
+      data={flatScheduleItems}
       getEstimatedItemSize={(index, item) => {
-        if (item.type === "time_header") {
+        if (item.type === 'time_header') {
           return 60;
         }
 
@@ -144,13 +141,13 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
       keyExtractor={keyExtractor}
       recycleItems
       ListHeaderComponent={
-        <View className="border-b-2 border-black bg-white flex-row items-center pl-3">
+        <View style={styles.listHeaderContainer}>
           <FontAwesome name="search" size={24} color="black" />
           <TextInput
             placeholder="Search talks and speakers..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            className="bg-white p-3 py-4 flex-1"
+            style={styles.searchInput}
             clearButtonMode="while-editing"
           />
         </View>
@@ -160,11 +157,11 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
   );
 }
 export default function SchedulePage() {
-  const defaultDay = "2025-05-29";
+  const defaultDay = '2025-05-29';
 
   const { days, schedule } = useSchedule();
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split('T')[0];
 
   const isTodayAConference = days.map((day) => day.dayString).includes(today);
 
@@ -173,12 +170,12 @@ export default function SchedulePage() {
   const daySchedule = schedule[day];
 
   return (
-    <View className="flex-1">
+    <View style={styles.schedulePageContainer}>
       <Stack.Screen
         options={{
-          title: "Schedule",
+          title: 'Schedule',
           headerTitle: () => (
-            <View className="flex-1 flex flex-row justify-center items-center">
+            <View style={styles.headerTitleContainer}>
               <DaySelector
                 days={days}
                 onDayChange={(newDay) => {
@@ -193,10 +190,62 @@ export default function SchedulePage() {
       {daySchedule ? (
         <ScheduleListView schedule={daySchedule} />
       ) : (
-        <View className="flex-1 justify-center items-center">
+        <View style={styles.noScheduleContainer}>
           <Text>No schedule data available.</Text>
         </View>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  timeHeaderContainer: {
+    backgroundColor: 'white',
+    padding: 16,
+    borderBottomWidth: 2,
+    borderBottomColor: 'black',
+  },
+  timeHeaderText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  sessionLink: {
+    padding: 16,
+    minHeight: 120,
+    borderBottomWidth: 2,
+    borderBottomColor: 'black',
+    width: '100%',
+  },
+  legendList: {
+    flex: 1,
+    backgroundColor: '#FAF5F3',
+  },
+  listHeaderContainer: {
+    borderBottomWidth: 2,
+    borderBottomColor: 'black',
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 12,
+  },
+  searchInput: {
+    backgroundColor: 'white',
+    padding: 12,
+    paddingVertical: 16,
+    flex: 1,
+  },
+  schedulePageContainer: {
+    flex: 1,
+  },
+  headerTitleContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noScheduleContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});

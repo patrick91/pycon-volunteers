@@ -1,11 +1,11 @@
-import { View, Text, ScrollView } from "react-native";
-import { Stack } from "expo-router";
-import { useLocalSearchParams } from "expo-router";
-import { graphql, readFragment } from "@/graphql";
-import { useSuspenseQuery } from "@apollo/client";
-import { SPEAKERS_FRAGMENT } from "..";
-import { Image } from "expo-image";
-import { useCurrentConference } from "@/hooks/use-current-conference";
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { Stack } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { graphql, readFragment } from '@/graphql';
+import { useSuspenseQuery } from '@apollo/client';
+import { SPEAKERS_FRAGMENT } from '..';
+import { Image } from 'expo-image';
+import { useCurrentConference } from '@/hooks/use-current-conference';
 
 const SPEAKERS_QUERY = graphql(
   `
@@ -43,28 +43,46 @@ export default function SpeakerPage() {
 
   return (
     <ScrollView
-      className="flex-1"
-      // TODO: figure out how to get these programmatically
+      style={styles.scrollView}
       contentContainerStyle={{ paddingBottom: 100 }}
     >
       <Stack.Screen options={{ title: speaker.fullName }} />
       {speaker.participant?.photo && (
-        <View className="border-b-2 border-black">
+        <View style={styles.imageContainer}>
           <Image
-            source={{ uri: speaker.participant?.photo }}
-            style={{
-              width: "100%",
-              aspectRatio: 1,
-            }}
+            source={{ uri: speaker.participant?.photo || undefined }}
+            style={styles.speakerImage}
           />
         </View>
       )}
-      <Text className="text-4xl font-bold p-4 border-b-2 border-black">
-        {speaker.fullName}
-      </Text>
+      <Text style={styles.fullNameText}>{speaker.fullName}</Text>
       {speaker.participant?.bio && (
-        <Text className="p-4">{speaker.participant?.bio}</Text>
+        <Text style={styles.bioText}>{speaker.participant?.bio}</Text>
       )}
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
+  imageContainer: {
+    borderBottomWidth: 2,
+    borderColor: 'black',
+  },
+  speakerImage: {
+    width: '100%',
+    aspectRatio: 1,
+  },
+  fullNameText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    padding: 16,
+    borderBottomWidth: 2,
+    borderColor: 'black',
+  },
+  bioText: {
+    padding: 16,
+  },
+});

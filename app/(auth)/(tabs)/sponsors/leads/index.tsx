@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, SafeAreaView, Button } from 'react-native';
+import { View, Text, SafeAreaView, Button, StyleSheet } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Link, useNavigation } from 'expo-router';
 import { graphql } from '@/graphql';
@@ -27,8 +27,8 @@ const Item = ({
   };
 }) => {
   return (
-    <View className="flex-row items-center px-4 py-4 border-b-2">
-      <Text className="ml-2 text-3xl">{item.attendee.fullName}</Text>
+    <View style={styles.itemContainer}>
+      <Text style={styles.itemText}>{item.attendee.fullName}</Text>
     </View>
   );
 };
@@ -52,27 +52,25 @@ export default function LeadsPage() {
 
   if (error) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center">
+      <SafeAreaView style={styles.centeredFlexContainer}>
         <Text>Error: {error.message}</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 pb-[100px]">
-      <View className="flex-1">
+    <SafeAreaView style={styles.mainSafeArea}>
+      <View style={styles.flexOne}>
         {loading && (
-          <View className="flex-row items-center justify-center px-2 py-2 border-b-2 bg-[#fce8de]">
-            <Text className="text-sm font-bold">
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>
               {data ? 'Loading new scans...' : 'Loading...'}
             </Text>
           </View>
         )}
 
         {data?.badgeScans.items.length === 0 && (
-          <Text className="text-2xl font-bold text-gray-800 mt-4">
-            No scans yet!
-          </Text>
+          <Text style={styles.noScansText}>No scans yet!</Text>
         )}
 
         <FlashList
@@ -94,3 +92,49 @@ export default function LeadsPage() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  itemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 2,
+  },
+  itemText: {
+    marginLeft: 8,
+    fontSize: 28,
+  },
+  centeredFlexContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mainSafeArea: {
+    flex: 1,
+    paddingBottom: 100,
+  },
+  flexOne: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderBottomWidth: 2,
+    backgroundColor: '#fce8de',
+  },
+  loadingText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  noScansText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2D3748',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+});

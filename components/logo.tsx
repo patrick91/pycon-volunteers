@@ -25,7 +25,6 @@ export const Logo = (props: {
     <Svg
       fill="none"
       aria-label="Logo"
-      className="w-64"
       viewBox="0 0 600 180"
       width={width}
       height={height}

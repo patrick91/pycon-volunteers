@@ -1,19 +1,36 @@
 import React from 'react';
-import { TextInput, TextInputProps, View } from 'react-native';
-import { twMerge } from 'tailwind-merge';
+import {
+  TextInput,
+  TextInputProps,
+  StyleSheet,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 
 interface InputProps extends TextInputProps {
-    className?: string;
+  style?: TextStyle;
 }
 
-export function Input({ className, ...props }: InputProps) {
-    return (
-        <TextInput
-            className={twMerge(
-                'font-sans-semibold py-2 border-0 border-b-4 placeholder:text-gray-400 text-lg leading-[1.2]',
-                className
-            )}
-            {...props}
-        />
-    );
+export function Input({ style, ...props }: InputProps) {
+  return (
+    <TextInput
+      style={[styles.baseInput, style]}
+      placeholderTextColor={styles.placeholder.color}
+      {...props}
+    />
+  );
 }
+
+const styles = StyleSheet.create({
+  baseInput: {
+    fontFamily: 'sans-semibold',
+    paddingVertical: 8,
+    borderBottomWidth: 4,
+    borderColor: '#000',
+    fontSize: 18,
+    lineHeight: 18 * 1.2,
+  },
+  placeholder: {
+    color: '#9CA3AF',
+  },
+});

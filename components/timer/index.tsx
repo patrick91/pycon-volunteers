@@ -1,22 +1,20 @@
-import { differenceInHours, format, parseISO } from "date-fns";
-import { View, Text } from "react-native";
-import React, { useEffect, useRef } from "react";
-import { useNow } from "./context";
-import { getTimer } from "./get-timer";
-import { getDeltaAndStatus } from "./get-delta-and-status";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { useTalkConfiguration } from "@/context/talk-configuration";
-import clsx from "clsx";
-import * as Haptics from "expo-haptics";
-import { useSession } from "@/context/auth";
+import { differenceInHours, format, parseISO } from 'date-fns';
+import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { useNow } from './context';
+import { getTimer } from './get-timer';
+import { getDeltaAndStatus } from './get-delta-and-status';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useTalkConfiguration } from '@/context/talk-configuration';
+import clsx from 'clsx';
+import * as Haptics from 'expo-haptics';
+import { useSession } from '@/context/auth';
 
 function TimeLeft({ title, timeLeft }: { title: string; timeLeft: string }) {
   return (
     <>
-      <Text className="text-xl font-bold">{title}</Text>
-      <Text className="text-7xl" style={{ fontVariant: ["tabular-nums"] }}>
-        {timeLeft}
-      </Text>
+      <Text style={styles.timeLeftTitle}>{title}</Text>
+      <Text style={styles.timeLeftText}>{timeLeft}</Text>
     </>
   );
 }
@@ -71,7 +69,7 @@ function TimerContent({
 
   if (inDistantFuture || !user?.canSeeTalkTimer) {
     return (
-      <View className="bg-[#FEFFD3] p-4 justify-center items-center gap-2">
+      <View style={styles.eventStartsContainer}>
         <Text>
           Event starts at {format(event.start, "HH:mm 'on' dd MMM yyyy")}
         </Text>
@@ -82,24 +80,25 @@ function TimerContent({
   const timer = getTimer({ delta });
 
   const statusText = {
-    notStarted: "Timer not started",
-    upcoming: "Upcoming",
-    running: "Time left",
-    runningQA: "Time left until Q&A",
-    qa: "Q&A",
-    over: "Over 🤬",
+    notStarted: 'Timer not started',
+    upcoming: 'Upcoming',
+    running: 'Time left',
+    runningQA: 'Time left until Q&A',
+    qa: 'Q&A',
+    over: 'Over 🤬',
   }[status];
 
   const almostDone =
-    (status === "running" && delta < 5 * 60 * 1000) ||
-    (status === "qa" && delta < 1 * 60 * 1000);
+    (status === 'running' && delta < 5 * 60 * 1000) ||
+    (status === 'qa' && delta < 1 * 60 * 1000);
 
   return (
     <View
-      className={clsx("p-4 justify-center items-center gap-2", {
-        "bg-[#FEFFD3]": !almostDone && status !== "over",
-        "bg-red-400": almostDone || status === "over",
-      })}
+      style={[
+        styles.timerContentBase,
+        !almostDone && status !== 'over' && styles.timerContentNormal,
+        (almostDone || status === 'over') && styles.timerContentAlmostDone,
+      ]}
     >
       <TimeLeft title={statusText} timeLeft={timer} />
     </View>
@@ -170,12 +169,12 @@ export const Timer = ({
 
         {debug && (
           <>
-            <View className="absolute top-1 right-1 w-3 h-3 rounded-full bg-purple-500" />
-            <View className="border-t-2 w-full p-2 bg-purple-200">
-              <Text>Current time: {format(now, "HH:mm:ss")}</Text>
-              <Text>Talk starts at: {format(start, "HH:mm:ss")}</Text>
-              <Text>Talk ends at: {format(end, "HH:mm:ss")}</Text>
-              <Text>Has Q&A: {hasQa ? "Yes" : "No"}</Text>
+            <View style={styles.debugIndicatorDot} />
+            <View style={styles.debugInfoContainer}>
+              <Text>Current time: {format(now, 'HH:mm:ss')}</Text>
+              <Text>Talk starts at: {format(start, 'HH:mm:ss')}</Text>
+              <Text>Talk ends at: {format(end, 'HH:mm:ss')}</Text>
+              <Text>Has Q&A: {hasQa ? 'Yes' : 'No'}</Text>
             </View>
           </>
         )}
@@ -183,3 +182,48 @@ export const Timer = ({
     </GestureDetector>
   );
 };
+
+const styles = StyleSheet.create({
+  timeLeftTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  timeLeftText: {
+    fontSize: 60,
+    fontVariant: ['tabular-nums'],
+  },
+  eventStartsContainer: {
+    backgroundColor: '#FEFFD3',
+    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  timerContentBase: {
+    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  timerContentNormal: {
+    backgroundColor: '#FEFFD3',
+  },
+  timerContentAlmostDone: {
+    backgroundColor: '#F87171',
+  },
+  debugIndicatorDot: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#A78BFA',
+  },
+  debugInfoContainer: {
+    borderTopWidth: 2,
+    width: '100%',
+    padding: 8,
+    backgroundColor: '#DDD6FE',
+  },
+});

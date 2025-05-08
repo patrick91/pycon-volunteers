@@ -1,6 +1,6 @@
-import * as DropdownMenu from "zeego/dropdown-menu";
-import { Text, View } from "react-native";
-import Feather from "@expo/vector-icons/Feather";
+import * as DropdownMenu from 'zeego/dropdown-menu';
+import { Text, View, StyleSheet } from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
 
 export function DaySelector({
   days,
@@ -14,12 +14,12 @@ export function DaySelector({
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
-        <View className="flex-row items-center justify-center h-12 gap-1 mr-[-24px]">
+        <View style={styles.triggerView}>
           <Text
             style={{
               fontSize: 16,
-              fontWeight: "600",
-              color: "#000",
+              fontWeight: '600',
+              color: '#000',
             }}
           >
             {days.find((day) => day.id === selectedDay)?.label}
@@ -37,3 +37,14 @@ export function DaySelector({
     </DropdownMenu.Root>
   );
 }
+
+const styles = StyleSheet.create({
+  triggerView: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    gap: 4,
+    marginRight: -24,
+  },
+});

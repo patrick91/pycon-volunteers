@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { Text, View, StyleSheet, Button } from 'react-native';
+import { Text, View, StyleSheet as RNStyleSheet, Button } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
 import { useIsEmulator } from 'react-native-device-info';
 
@@ -98,9 +98,9 @@ export default function SponsorScan() {
   }
 
   return (
-    <View className="flex-1 justify-center items-center">
+    <View style={styles.centeredFlex}>
       {isEmulator ? (
-        <View className="flex-1 justify-center items-center">
+        <View style={styles.centeredFlex}>
           <Text>Emulator</Text>
           <Button
             title="Scan"
@@ -117,7 +117,7 @@ export default function SponsorScan() {
           barcodeScannerSettings={{
             barcodeTypes: ['qr'],
           }}
-          style={StyleSheet.absoluteFillObject}
+          style={RNStyleSheet.absoluteFillObject}
         />
       )}
 
@@ -132,11 +132,11 @@ export default function SponsorScan() {
         enablePanDownToClose
       >
         <BottomSheetScrollView>
-          <View className="flex-1 justify-center items-center">
+          <View style={styles.centeredFlex}>
             {loading ? (
               <Text>Loading...</Text>
             ) : (
-              <View className="flex-1 pb-14 w-full px-8">
+              <View style={styles.profileContainer}>
                 {data?.scanBadge.__typename === 'BadgeScan' ? (
                   <UserProfile
                     attendee={data.scanBadge.attendee}
@@ -154,3 +154,17 @@ export default function SponsorScan() {
     </View>
   );
 }
+
+const styles = RNStyleSheet.create({
+  centeredFlex: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileContainer: {
+    flex: 1,
+    paddingBottom: 56,
+    width: '100%',
+    paddingHorizontal: 32,
+  },
+});
