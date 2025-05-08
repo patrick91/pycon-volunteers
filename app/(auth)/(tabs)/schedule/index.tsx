@@ -5,7 +5,7 @@ import { type Item, SessionItem } from "@/components/session-item";
 import { useSchedule, type DaySchedule } from "@/hooks/use-schedule";
 import { LegendList } from "@legendapp/list";
 import { parseISO } from "date-fns";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Text, TextInput, View } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
@@ -102,6 +102,33 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
     return newFlatList;
   }, [sortedTimeSlots]);
 
+  const keyExtractor = useCallback((item: ScheduleFlatListItem) => item.id, []);
+  const renderItem = useCallback(({ item }: { item: ScheduleFlatListItem }) => {
+    if (item.type === "time_header") {
+      return (
+        <View className="bg-white p-4 border-b-2 border-black">
+          <Text className="text-lg font-bold">
+            {item.time.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
+        </View>
+      );
+    }
+
+    const { session } = item;
+
+    return (
+      <Link
+        href={`/schedule/${session.slug}`}
+        className="p-4 min-h-[120px] border-b-2 border-black w-full"
+      >
+        <SessionItem session={session} />
+      </Link>
+    );
+  }, []);
+
   return (
     <LegendList
       className="flex-1 bg-[#FAF5F3]"
@@ -114,7 +141,7 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
 
         return 140;
       }}
-      keyExtractor={(item: ScheduleFlatListItem) => item.id}
+      keyExtractor={keyExtractor}
       recycleItems
       ListHeaderComponent={
         <View className="border-b-2 border-black bg-white flex-row items-center pl-3">
@@ -128,31 +155,7 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
           />
         </View>
       }
-      renderItem={({ item }: { item: ScheduleFlatListItem }) => {
-        if (item.type === "time_header") {
-          return (
-            <View className="bg-white p-4 border-b-2 border-black">
-              <Text className="text-lg font-bold">
-                {item.time.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </Text>
-            </View>
-          );
-        }
-
-        const { session } = item;
-
-        return (
-          <Link
-            href={`/schedule/${session.slug}`}
-            className="p-4 min-h-[120px] border-b-2 border-black w-full"
-          >
-            <SessionItem session={session} />
-          </Link>
-        );
-      }}
+      renderItem={renderItem}
     />
   );
 }
