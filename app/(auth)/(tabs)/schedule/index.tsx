@@ -9,6 +9,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { Text, TextInput, View, TouchableOpacity } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Button } from '@/components/ui/button';
+import { Path } from 'react-native-svg';
+import Svg from 'react-native-svg';
 
 // Define types for the flattened list items
 interface TimeHeaderItem {
@@ -157,26 +159,42 @@ export default function SchedulePage() {
   const [day, setDay] = useState(isTodayAConference ? today : defaultDay);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [showOnlyManagedTalks, setShowOnlyManagedTalks] = useState(false);
 
   const allItems = useMemo(() => {
     return Object.values(schedule)
       .flatMap((daySchedule) => daySchedule.items)
-      .filter((item): item is ItemWithDuration => !!item); // Type guard to ensure item is not undefined
+      .filter((item): item is ItemWithDuration => !!item);
   }, [schedule]);
 
   const displayedItems = useMemo(() => {
-    if (!searchQuery.trim()) {
+    let itemsToDisplay = allItems;
+
+    if (searchQuery.trim()) {
+      const lowerCaseQuery = searchQuery.toLowerCase();
+      itemsToDisplay = itemsToDisplay.filter((item) => {
+        const titleMatch = item.title.toLowerCase().includes(lowerCaseQuery);
+        const speakerMatch = item.speakers.some((speaker) =>
+          speaker.fullName.toLowerCase().includes(lowerCaseQuery),
+        );
+        return titleMatch || speakerMatch;
+      });
+    }
+
+    if (showOnlyManagedTalks) {
+      itemsToDisplay = itemsToDisplay.filter((item) => item.userIsTalkManager);
+    }
+
+    if (!searchQuery.trim() && !showOnlyManagedTalks) {
       return schedule[day]?.items || [];
     }
-    const lowerCaseQuery = searchQuery.toLowerCase();
-    return allItems.filter((item) => {
-      const titleMatch = item.title.toLowerCase().includes(lowerCaseQuery);
-      const speakerMatch = item.speakers.some((speaker) =>
-        speaker.fullName.toLowerCase().includes(lowerCaseQuery),
-      );
-      return titleMatch || speakerMatch;
-    });
-  }, [searchQuery, allItems, schedule, day]);
+
+    return itemsToDisplay;
+  }, [searchQuery, allItems, schedule, day, showOnlyManagedTalks]);
+
+  const handleShowOnlyManagedTalks = () => {
+    setShowOnlyManagedTalks(!showOnlyManagedTalks);
+  };
 
   const searchInput = (
     <TextInput
@@ -206,13 +224,24 @@ export default function SchedulePage() {
             </View>
           ),
 
-          // headerRight: () => (
-          //   <View className="flex-row items-center">
-          //     <Button onPress={() => console.log('Add Session')}>
-          //       <Text>Add Session</Text>
-          //     </Button>
-          //   </View>
-          // ),
+          headerRight: () => (
+            <TouchableOpacity
+              className="flex-row items-center p-4"
+              onPress={handleShowOnlyManagedTalks}
+            >
+              <Svg
+                width={41 / 2}
+                height={35 / 2}
+                fill="none"
+                viewBox="0 0 41 35"
+              >
+                <Path
+                  fill={showOnlyManagedTalks ? '#007AFF' : '#000'}
+                  d="M16.532 8.27c0-4.235 3.445-7.68 7.679-7.68s7.678 3.445 7.678 7.68c0 4.233-3.444 7.678-7.678 7.678s-7.679-3.445-7.679-7.679Zm7.679 9.648c-9.383 0-16.66 5.582-16.66 10.384 0 5.435 8.007 6.184 16.66 6.184s16.66-.749 16.66-6.184c0-4.802-7.278-10.384-16.66-10.384Zm-13.608.753c.4 0 .799-.125 1.139-.372a1.927 1.927 0 0 0 .771-1.897l-.448-2.612 1.898-1.85c.532-.519.72-1.28.49-1.988a1.928 1.928 0 0 0-1.565-1.32l-2.623-.38-1.172-2.377a1.929 1.929 0 0 0-1.74-1.08c-.743 0-1.41.413-1.739 1.08L4.442 8.251l-2.623.381a1.93 1.93 0 0 0-1.565 1.32 1.928 1.928 0 0 0 .49 1.989l1.898 1.85-.448 2.612c-.126.733.17 1.46.772 1.896a1.93 1.93 0 0 0 2.042.148l2.346-1.234 2.345 1.233c.287.15.596.225.904.225Z"
+                />
+              </Svg>
+            </TouchableOpacity>
+          ),
         }}
       />
 
