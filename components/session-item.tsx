@@ -15,7 +15,7 @@ export const ITEM_FRAGMENT = graphql(`
       id
     }
     type
-    # isCurrentUserTalkManager
+    userIsTalkManager
     speakers {
       id
       fullName
@@ -45,14 +45,14 @@ export function SessionItem({ session }: SessionItemProps) {
     minute: '2-digit',
   });
 
-  const isTalkManager = false;
+  const isTalkManager = session.userIsTalkManager;
 
   return (
     <View className="w-full">
       {isTalkManager && (
         <View className="rounded-full bg-purple-400 absolute right-0 top-0 size-4" />
       )}
-      <Text className="font-sans-semibold text-xl" numberOfLines={2}>
+      <Text className="font-sans-semibold text-xl pr-2" numberOfLines={2}>
         {session.title}
       </Text>
       <Text className="font-sans mb-4">
