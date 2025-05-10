@@ -1,16 +1,16 @@
-import { Tabs } from "expo-router";
-import React from "react";
-import { Platform } from "react-native";
+import { Tabs } from 'expo-router';
+import React from 'react';
+import { Platform } from 'react-native';
 
-import { HapticTab } from "@/components/HapticTab";
-import TabBarBackground from "@/components/ui/TabBarBackground";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useFeatureFlag } from "posthog-react-native";
-import { useSession } from "@/context/auth";
+import { HapticTab } from '@/components/HapticTab';
+import TabBarBackground from '@/components/ui/TabBarBackground';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useFeatureFlag } from 'posthog-react-native';
+import { useSession } from '@/context/auth';
 
 export default function TabLayout() {
-  const isSponsorSectionEnabled = useFeatureFlag("enable-sponsor-section");
+  const isSponsorSectionEnabled = useFeatureFlag('enable-sponsor-section');
   const { user } = useSession();
 
   const canSeeSponsorSection =
@@ -22,19 +22,13 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            position: "absolute",
-          },
-          default: {},
-        }),
       }}
     >
-      <Tabs.Screen name="index" options={{ href: null, title: "Schedule" }} />
+      <Tabs.Screen name="index" options={{ href: null, title: 'Schedule' }} />
       <Tabs.Screen
         name="schedule"
         options={{
-          title: "Schedule",
+          title: 'Schedule',
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="event-note" size={24} color={color} />
           ),
@@ -43,7 +37,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: 'Profile',
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name="face-man-profile"
@@ -58,7 +52,7 @@ export default function TabLayout() {
         name="sponsors/leads/index"
         options={{
           href: canSeeSponsorSection ? undefined : null,
-          title: "Leads",
+          title: 'Leads',
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="store" size={24} color={color} />
           ),
@@ -76,7 +70,7 @@ export default function TabLayout() {
         name="sponsors/scan"
         options={{
           href: canSeeSponsorSection ? undefined : null,
-          title: "Scan",
+          title: 'Scan',
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="qr-code" size={24} color={color} />
           ),

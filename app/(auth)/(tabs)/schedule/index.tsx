@@ -1,23 +1,24 @@
-import { Stack, Link } from "expo-router";
-import { DaySelector } from "@/components/day-selector";
+import { Stack, Link } from 'expo-router';
+import { DaySelector } from '@/components/day-selector';
 
-import { type Item, SessionItem } from "@/components/session-item";
-import { useSchedule, type DaySchedule } from "@/hooks/use-schedule";
-import { LegendList } from "@legendapp/list";
-import { parseISO } from "date-fns";
-import { useCallback, useMemo, useState } from "react";
-import { Text, TextInput, View } from "react-native";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { type Item, SessionItem } from '@/components/session-item';
+import { useSchedule, type DaySchedule } from '@/hooks/use-schedule';
+import { LegendList } from '@legendapp/list';
+import { parseISO } from 'date-fns';
+import { useCallback, useMemo, useState } from 'react';
+import { Text, TextInput, View } from 'react-native';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Button } from '@/components/ui/button';
 
 // Define types for the flattened list items
 interface TimeHeaderItem {
-  type: "time_header";
+  type: 'time_header';
   time: Date;
   id: string;
 }
 
 interface SessionDisplayItem {
-  type: "session_item";
+  type: 'session_item';
   session: Item; // Item is already defined from '@/components/session-item'
   id: string;
 }
@@ -25,25 +26,22 @@ interface SessionDisplayItem {
 type ScheduleFlatListItem = TimeHeaderItem | SessionDisplayItem;
 
 function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { searchAllTalks } = useSchedule();
 
   const itemsToDisplay = useMemo(() => {
-    if (searchQuery.trim()) {
-      return searchAllTalks(searchQuery.trim());
-    }
     // If no search query, extract all items from the daily schedule
     const dailyItems: Item[] = [];
     for (const room of schedule.rooms) {
-      if (typeof room !== "string") {
+      if (typeof room !== 'string') {
         for (const scheduleSession of room.sessions) {
           dailyItems.push(scheduleSession.session);
         }
       }
     }
     return dailyItems;
-  }, [searchQuery, schedule, searchAllTalks]);
+  }, [schedule]);
 
   // Group sessions by time
   const sessionsByTime = useMemo(() => {
@@ -86,14 +84,14 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
     const newFlatList: ScheduleFlatListItem[] = [];
     for (const slot of sortedTimeSlots) {
       newFlatList.push({
-        type: "time_header",
+        type: 'time_header',
         time: slot.time,
         id: slot.time.toISOString(),
       });
 
       for (const session of slot.sessions) {
         newFlatList.push({
-          type: "session_item",
+          type: 'session_item',
           session: session,
           id: `session-${session.id}`,
         });
@@ -104,13 +102,13 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
 
   const keyExtractor = useCallback((item: ScheduleFlatListItem) => item.id, []);
   const renderItem = useCallback(({ item }: { item: ScheduleFlatListItem }) => {
-    if (item.type === "time_header") {
+    if (item.type === 'time_header') {
       return (
         <View className="bg-white p-4 border-b-2 border-black">
           <Text className="text-lg font-bold">
             {item.time.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </Text>
         </View>
@@ -122,7 +120,7 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
     return (
       <Link
         href={`/schedule/${session.slug}`}
-        className="p-4 min-h-[120px] border-b-2 border-black w-full"
+        className="p-4 min-h-[120px] border-b-2 border-black w-full bg-red-300"
       >
         <SessionItem session={session} />
       </Link>
@@ -135,7 +133,7 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
       contentContainerStyle={{ paddingBottom: 86 }}
       data={flatScheduleItems} // Use the new flat list
       getEstimatedItemSize={(index, item) => {
-        if (item.type === "time_header") {
+        if (item.type === 'time_header') {
           return 60;
         }
 
@@ -160,11 +158,11 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
   );
 }
 export default function SchedulePage() {
-  const defaultDay = "2025-05-29";
+  const defaultDay = '2025-05-29';
 
   const { days, schedule } = useSchedule();
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split('T')[0];
 
   const isTodayAConference = days.map((day) => day.dayString).includes(today);
 
@@ -176,7 +174,7 @@ export default function SchedulePage() {
     <View className="flex-1">
       <Stack.Screen
         options={{
-          title: "Schedule",
+          title: 'Schedule',
           headerTitle: () => (
             <View className="flex-1 flex flex-row justify-center items-center">
               <DaySelector
@@ -185,6 +183,15 @@ export default function SchedulePage() {
                   setDay(newDay);
                 }}
                 selectedDay={day}
+              />
+            </View>
+          ),
+
+          headerRight: () => (
+            <View className="flex-row items-center">
+              <Button
+                title="Add Session"
+                onPress={() => console.log('Add Session')}
               />
             </View>
           ),

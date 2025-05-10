@@ -1,7 +1,7 @@
-import { View, Text } from "react-native";
-import { useRouter } from "expo-router";
-import { graphql, type ResultOf } from "@/graphql";
-import { Image } from "expo-image";
+import { View, Text } from 'react-native';
+import { useRouter } from 'expo-router';
+import { graphql, type ResultOf } from '@/graphql';
+import { Image } from 'expo-image';
 
 export const ITEM_FRAGMENT = graphql(`
   fragment Item on ScheduleItem {
@@ -15,6 +15,7 @@ export const ITEM_FRAGMENT = graphql(`
       id
     }
     type
+    # isCurrentUserTalkManager
     speakers {
       id
       fullName
@@ -35,18 +36,23 @@ type SessionItemProps = {
 export function SessionItem({ session }: SessionItemProps) {
   const router = useRouter();
   const start = new Date(session.start);
-  const formattedStart = start.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
+  const formattedStart = start.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
   });
   const end = new Date(session.end);
-  const formattedEnd = end.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
+  const formattedEnd = end.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
   });
+
+  const isTalkManager = false;
 
   return (
     <View className="w-full">
+      {isTalkManager && (
+        <View className="rounded-full bg-purple-400 absolute right-0 top-0 size-4" />
+      )}
       <Text className="font-sans-semibold text-xl" numberOfLines={2}>
         {session.title}
       </Text>
@@ -64,8 +70,8 @@ export function SessionItem({ session }: SessionItemProps) {
                   style={{
                     width: 24,
                     height: 24,
-                    borderRadius: "100%",
-                    borderColor: "black",
+                    borderRadius: '100%',
+                    borderColor: 'black',
                     borderWidth: 1,
                     marginLeft: index === 0 ? 0 : -16,
                   }}
@@ -75,7 +81,7 @@ export function SessionItem({ session }: SessionItemProps) {
           </View>
 
           <Text className="font-sans-semibold flex-1">
-            {session.speakers.map((speaker) => speaker.fullName).join(", ")}
+            {session.speakers.map((speaker) => speaker.fullName).join(', ')}
           </Text>
         </View>
       </View>
