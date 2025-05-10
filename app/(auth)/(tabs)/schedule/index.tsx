@@ -6,7 +6,7 @@ import { type ItemWithDuration, useSchedule } from '@/hooks/use-schedule';
 import { LegendList } from '@legendapp/list';
 import { parseISO } from 'date-fns';
 import { useCallback, useMemo, useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View, TouchableOpacity } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Button } from '@/components/ui/button';
 
@@ -113,10 +113,24 @@ function ScheduleListView({
     );
   }, []);
 
+  const listHeader = useMemo(() => {
+    return (
+      <View className="border-b-2 border-black bg-white flex-row items-center pl-3">
+        <FontAwesome name="search" size={24} color="black" />
+        {searchInput}
+      </View>
+    );
+  }, [searchInput]);
+
   return (
     <LegendList
       className="flex-1 bg-[#FAF5F3]"
       contentContainerStyle={{ paddingBottom: 86 }}
+      ListEmptyComponent={
+        <View className="flex-1 justify-center items-center pt-8">
+          <Text>No results found for your search.</Text>
+        </View>
+      }
       data={flatScheduleItems} // Use the new flat list
       getEstimatedItemSize={(index, item) => {
         if (item.type === 'time_header') {
@@ -127,12 +141,7 @@ function ScheduleListView({
       }}
       keyExtractor={keyExtractor}
       recycleItems
-      ListHeaderComponent={
-        <View className="border-b-2 border-black bg-white flex-row items-center pl-3">
-          <FontAwesome name="search" size={24} color="black" />
-          {searchInput}
-        </View>
-      }
+      ListHeaderComponent={listHeader}
       renderItem={renderItem}
     />
   );
@@ -149,9 +158,25 @@ export default function SchedulePage() {
 
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { items } = schedule[day];
+  const allItems = useMemo(() => {
+    return Object.values(schedule)
+      .flatMap((daySchedule) => daySchedule.items)
+      .filter((item): item is ItemWithDuration => !!item); // Type guard to ensure item is not undefined
+  }, [schedule]);
 
-  console.log(searchQuery);
+  const displayedItems = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return schedule[day]?.items || [];
+    }
+    const lowerCaseQuery = searchQuery.toLowerCase();
+    return allItems.filter((item) => {
+      const titleMatch = item.title.toLowerCase().includes(lowerCaseQuery);
+      const speakerMatch = item.speakers.some((speaker) =>
+        speaker.fullName.toLowerCase().includes(lowerCaseQuery),
+      );
+      return titleMatch || speakerMatch;
+    });
+  }, [searchQuery, allItems, schedule, day]);
 
   const searchInput = (
     <TextInput
@@ -174,29 +199,24 @@ export default function SchedulePage() {
                 days={days}
                 onDayChange={(newDay) => {
                   setDay(newDay);
+                  // setSearchQuery(''); // Optional: Clear search when changing day
                 }}
                 selectedDay={day}
               />
             </View>
           ),
 
-          headerRight: () => (
-            <View className="flex-row items-center">
-              <Button
-                title="Add Session"
-                onPress={() => console.log('Add Session')}
-              />
-            </View>
-          ),
+          // headerRight: () => (
+          //   <View className="flex-row items-center">
+          //     <Button onPress={() => console.log('Add Session')}>
+          //       <Text>Add Session</Text>
+          //     </Button>
+          //   </View>
+          // ),
         }}
       />
-      {items ? (
-        <ScheduleListView items={items} searchInput={searchInput} />
-      ) : (
-        <View className="flex-1 justify-center items-center">
-          <Text>No schedule data available.</Text>
-        </View>
-      )}
+
+      <ScheduleListView items={displayedItems} searchInput={searchInput} />
     </View>
   );
 }
