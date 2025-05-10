@@ -4,7 +4,7 @@ import { useCurrentConference } from '@/hooks/use-current-conference';
 import { ITEM_FRAGMENT, type Item } from '@/components/session-item';
 import { parseISO, format, isSameDay } from 'date-fns';
 
-type ItemWithDuration = Omit<Item, 'duration'> & { duration: number };
+export type ItemWithDuration = Omit<Item, 'duration'> & { duration: number };
 
 type Slot =
   | {
@@ -144,80 +144,7 @@ function getDailySchedule(data: ResultOf<typeof SCHEDULE_QUERY>, day: Date) {
     }
   }
 
-  const getLeft = (item: Item) => {
-    let left = 0;
-
-    const itemStartHour = hourFromDatetime(item.start);
-
-    for (const slot of Object.values(daySlots)) {
-      if (slot.start === itemStartHour) {
-        break;
-      }
-
-      left += getSlotSize(slot);
-    }
-
-    return left;
-  };
-
-  const getWidth = (item: ItemWithDuration, slot: Slot) => {
-    if (slot.type === 'sessions') {
-      const pixelsPerMinute = getSlotSize(slot) / slot.duration;
-
-      return item.duration * pixelsPerMinute;
-    }
-
-    return getSlotSize(slot);
-  };
-
-  let scheduleSize = 0;
-
-  const sessionsByRoom = dayItems.reduce(
-    (acc, item) => {
-      const slot = daySlots[hourFromDatetime(item.start)];
-
-      if (!slot) {
-        throw new Error('Slot not found');
-      }
-
-      const width = getWidth(item, slot);
-      const left = getLeft(item);
-
-      scheduleSize = Math.max(scheduleSize, left + width);
-
-      const scheduleSession = {
-        id: item.id,
-        session: item,
-        width,
-        left,
-      };
-
-      for (const room of item.rooms) {
-        if (!acc[room.id]) {
-          acc[room.id] = [];
-        }
-        acc[room.id].push(scheduleSession);
-      }
-
-      return acc;
-    },
-    {} as Record<string, Array<ScheduleSession>>,
-  );
-
-  const rooms = dayRooms.flatMap((room) => {
-    return { name: room.name, sessions: sessionsByRoom[room.id] };
-  });
-
-  const roomTitleIndices = rooms
-    .map((item, index) => {
-      if (typeof item === 'string') {
-        return index;
-      }
-      return null;
-    })
-    .filter((item) => item !== null) as number[];
-
-  return { rooms, roomTitleIndices, scheduleSize };
+  return { items: dayItems };
 }
 
 export type DaySchedule = ReturnType<typeof getDailySchedule>;
@@ -242,40 +169,8 @@ export const useSchedule = () => {
     days.map((day) => [day.dayString, getDailySchedule(data, day.day)]),
   );
 
-  const searchAllTalks = (searchTerm: string): Item[] => {
-    if (!searchTerm.trim()) {
-      return [];
-    }
-    const lowerCaseSearchTerm = searchTerm.toLowerCase();
-    const allTalks: Item[] = [];
-
-    for (const day of data.conference.days) {
-      for (const slot of day.slots) {
-        const items = readFragment(ITEM_FRAGMENT, slot.items);
-        for (const item of items) {
-          const titleMatch = item.title
-            .toLowerCase()
-            .includes(lowerCaseSearchTerm);
-          const speakerMatch = item.speakers.some((speaker) =>
-            speaker.fullName.toLowerCase().includes(lowerCaseSearchTerm),
-          );
-          // Add other fields to search if necessary e.g. item.description
-          if (titleMatch || speakerMatch) {
-            allTalks.push(item);
-          }
-        }
-      }
-    }
-    // Deduplicate talks by ID, in case a talk appears in multiple slots or days (though unlikely for titles/speakers)
-    const uniqueTalks = Array.from(
-      new Map(allTalks.map((talk) => [talk.id, talk])).values(),
-    );
-    return uniqueTalks;
-  };
-
   return {
     schedule,
     days,
-    searchAllTalks,
   };
 };

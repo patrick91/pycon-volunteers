@@ -34,7 +34,6 @@ type SessionItemProps = {
 };
 
 export function SessionItem({ session }: SessionItemProps) {
-  const router = useRouter();
   const start = new Date(session.start);
   const formattedStart = start.toLocaleTimeString('en-GB', {
     hour: '2-digit',

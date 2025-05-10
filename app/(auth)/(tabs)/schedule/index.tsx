@@ -2,7 +2,7 @@ import { Stack, Link } from 'expo-router';
 import { DaySelector } from '@/components/day-selector';
 
 import { type Item, SessionItem } from '@/components/session-item';
-import { useSchedule, type DaySchedule } from '@/hooks/use-schedule';
+import { type ItemWithDuration, useSchedule } from '@/hooks/use-schedule';
 import { LegendList } from '@legendapp/list';
 import { parseISO } from 'date-fns';
 import { useCallback, useMemo, useState } from 'react';
@@ -25,27 +25,13 @@ interface SessionDisplayItem {
 
 type ScheduleFlatListItem = TimeHeaderItem | SessionDisplayItem;
 
-function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const { searchAllTalks } = useSchedule();
-
-  const itemsToDisplay = useMemo(() => {
-    // If no search query, extract all items from the daily schedule
-    const dailyItems: Item[] = [];
-    for (const room of schedule.rooms) {
-      if (typeof room !== 'string') {
-        for (const scheduleSession of room.sessions) {
-          dailyItems.push(scheduleSession.session);
-        }
-      }
-    }
-    return dailyItems;
-  }, [schedule]);
-
+function ScheduleListView({
+  items,
+  searchInput,
+}: { items: ItemWithDuration[]; searchInput: React.ReactNode }) {
   // Group sessions by time
   const sessionsByTime = useMemo(() => {
-    return itemsToDisplay.reduce(
+    return items.reduce(
       (acc, session) => {
         const startTime = parseISO(session.start);
         const timeKey = startTime.toISOString();
@@ -70,7 +56,7 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
       },
       {} as Record<string, { time: Date; sessions: Item[] }>,
     );
-  }, [itemsToDisplay]);
+  }, [items]);
 
   // Sort time slots
   const sortedTimeSlots = useMemo(() => {
@@ -144,13 +130,7 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
       ListHeaderComponent={
         <View className="border-b-2 border-black bg-white flex-row items-center pl-3">
           <FontAwesome name="search" size={24} color="black" />
-          <TextInput
-            placeholder="Search talks and speakers..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            className="bg-white p-3 py-4 flex-1"
-            clearButtonMode="while-editing"
-          />
+          {searchInput}
         </View>
       }
       renderItem={renderItem}
@@ -159,16 +139,29 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
 }
 export default function SchedulePage() {
   const defaultDay = '2025-05-29';
+  const today = new Date().toISOString().split('T')[0];
 
   const { days, schedule } = useSchedule();
-
-  const today = new Date().toISOString().split('T')[0];
 
   const isTodayAConference = days.map((day) => day.dayString).includes(today);
 
   const [day, setDay] = useState(isTodayAConference ? today : defaultDay);
 
-  const daySchedule = schedule[day];
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const { items } = schedule[day];
+
+  console.log(searchQuery);
+
+  const searchInput = (
+    <TextInput
+      placeholder="Search talks and speakers..."
+      value={searchQuery}
+      onChangeText={setSearchQuery}
+      className="bg-white p-3 py-4 flex-1"
+      clearButtonMode="while-editing"
+    />
+  );
 
   return (
     <View className="flex-1">
@@ -197,8 +190,8 @@ export default function SchedulePage() {
           ),
         }}
       />
-      {daySchedule ? (
-        <ScheduleListView schedule={daySchedule} />
+      {items ? (
+        <ScheduleListView items={items} searchInput={searchInput} />
       ) : (
         <View className="flex-1 justify-center items-center">
           <Text>No schedule data available.</Text>
