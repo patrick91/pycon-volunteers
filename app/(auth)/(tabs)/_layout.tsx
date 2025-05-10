@@ -49,7 +49,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="sponsors/leads/index"
+        name="sponsors/leads"
         options={{
           href: canSeeSponsorSection ? undefined : null,
           title: 'Leads',

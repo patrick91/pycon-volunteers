@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, Text, SafeAreaView, Button } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
-import { Link, useNavigation } from 'expo-router';
+
+import { Link, Stack, useNavigation } from 'expo-router';
 import { graphql } from '@/graphql';
 import { useQuery } from '@apollo/client';
 import { useCurrentConference } from '@/hooks/use-current-conference';
+import { LegendList } from '@legendapp/list';
+
 const MY_LEADS_QUERY = graphql(`
   query MyLeads($conferenceCode: String!) {
     badgeScans(conferenceCode: $conferenceCode) {
@@ -17,21 +19,6 @@ const MY_LEADS_QUERY = graphql(`
     }
   }
 `);
-
-const Item = ({
-  item,
-}: {
-  item: {
-    id: string;
-    attendee: { fullName: string };
-  };
-}) => {
-  return (
-    <View className="flex-row items-center px-4 py-4 border-b-2">
-      <Text className="ml-2 text-3xl">{item.attendee.fullName}</Text>
-    </View>
-  );
-};
 
 export default function LeadsPage() {
   const navigation = useNavigation();
@@ -60,6 +47,8 @@ export default function LeadsPage() {
 
   return (
     <SafeAreaView className="flex-1 pb-[100px]">
+      <Stack.Screen options={{ title: 'Leads' }} />
+
       <View className="flex-1">
         {loading && (
           <View className="flex-row items-center justify-center px-2 py-2 border-b-2 bg-[#fce8de]">
@@ -75,8 +64,8 @@ export default function LeadsPage() {
           </Text>
         )}
 
-        <FlashList
-          data={data?.badgeScans.items}
+        <LegendList
+          data={data?.badgeScans.items || []}
           renderItem={({ item }) => (
             <Link
               href={{
@@ -86,7 +75,9 @@ export default function LeadsPage() {
                 },
               }}
             >
-              <Item item={item} />
+              <View className="flex-row items-center px-4 py-4 border-b-2 w-full">
+                <Text className="ml-2 text-3xl">{item.attendee.fullName}</Text>
+              </View>
             </Link>
           )}
         />

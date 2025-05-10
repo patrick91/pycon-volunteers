@@ -1,7 +1,7 @@
 import { UserProfile } from '@/components/sponsors/user-profile';
 import { graphql } from '@/graphql';
 import { useQuery } from '@apollo/client';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, Stack } from 'expo-router';
 import { View, Text, SafeAreaView, ScrollView } from 'react-native';
 
 const BADGE_SCAN_QUERY = graphql(`
@@ -35,6 +35,7 @@ export default function ScanPage() {
   return (
     <SafeAreaView className="flex-1">
       <ScrollView className="flex-1 px-6">
+        <Stack.Screen options={{ title: data.badgeScan.attendee.fullName }} />
         <UserProfile
           badgeId={data.badgeScan.id}
           attendee={data?.badgeScan?.attendee}
