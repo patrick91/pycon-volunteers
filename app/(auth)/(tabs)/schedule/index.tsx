@@ -120,7 +120,7 @@ function ScheduleListView({ schedule }: { schedule: DaySchedule }) {
     return (
       <Link
         href={`/schedule/${session.slug}`}
-        className="p-4 min-h-[120px] border-b-2 border-black w-full bg-red-300"
+        className="p-4 min-h-[120px] border-b-2 border-black w-full bg-[#FCE8DE]"
       >
         <SessionItem session={session} />
       </Link>
