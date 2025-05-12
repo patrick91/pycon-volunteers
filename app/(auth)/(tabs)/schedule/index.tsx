@@ -30,7 +30,12 @@ type ScheduleFlatListItem = TimeHeaderItem | SessionDisplayItem;
 function ScheduleListView({
   items,
   searchInput,
-}: { items: ItemWithDuration[]; searchInput: React.ReactNode }) {
+  rooms,
+}: {
+  items: ItemWithDuration[];
+  searchInput: React.ReactNode;
+  rooms: { name: string; type: string }[];
+}) {
   // Group sessions by time
   const sessionsByTime = useMemo(() => {
     return items.reduce(
@@ -110,7 +115,7 @@ function ScheduleListView({
         href={`/schedule/${session.slug}`}
         className="p-4 min-h-[120px] border-b-2 border-black w-full bg-[#FCE8DE]"
       >
-        <SessionItem session={session} />
+        <SessionItem session={session} rooms={rooms} />
       </Link>
     );
   }, []);
@@ -249,7 +254,11 @@ export default function SchedulePage() {
         }}
       />
 
-      <ScheduleListView items={displayedItems} searchInput={searchInput} />
+      <ScheduleListView
+        items={displayedItems}
+        searchInput={searchInput}
+        rooms={schedule[day]?.rooms ?? []}
+      />
     </View>
   );
 }
