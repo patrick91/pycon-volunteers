@@ -1,5 +1,4 @@
 import { View, Text } from 'react-native';
-import { useRouter } from 'expo-router';
 import { graphql, type ResultOf } from '@/graphql';
 import { Image } from 'expo-image';
 
@@ -52,7 +51,7 @@ export function SessionItem({ session }: SessionItemProps) {
       {isTalkManager && (
         <View className="rounded-full bg-purple-400 absolute right-0 top-0 size-4" />
       )}
-      <Text className="font-sans-semibold text-xl pr-2" numberOfLines={2}>
+      <Text className="font-sans-semibold text-xl pr-8" numberOfLines={2}>
         {session.title}
       </Text>
       <Text className="font-sans mb-4">

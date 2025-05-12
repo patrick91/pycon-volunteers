@@ -2,35 +2,36 @@ import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
-} from "@react-navigation/native";
-import { useFonts } from "expo-font";
-import { Stack, useRouter } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
-import "react-native-reanimated";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SessionProvider } from "@/context/auth";
+} from '@react-navigation/native';
+import { useFonts } from 'expo-font';
+import { Stack, useRouter } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
+import 'react-native-reanimated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SessionProvider, useSession } from '@/context/auth';
 import {
   ApolloClient,
   InMemoryCache,
   ApolloProvider,
   HttpLink,
   NormalizedCacheObject,
-} from "@apollo/client";
-import { KeyboardProvider } from "react-native-keyboard-controller";
-import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
-import { onError } from "@apollo/client/link/error";
-import { AsyncStorageWrapper, CachePersistor } from "apollo3-cache-persist";
-import "../global.css";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { TalkConfigurationProvider } from "@/context/talk-configuration";
-import { PostHogProvider } from "posthog-react-native";
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import * as Sentry from "@sentry/react-native";
+  ApolloLink,
+} from '@apollo/client';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
+import { onError } from '@apollo/client/link/error';
+import { AsyncStorageWrapper, CachePersistor } from 'apollo3-cache-persist';
+import '../global.css';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { TalkConfigurationProvider } from '@/context/talk-configuration';
+import { PostHogProvider } from 'posthog-react-native';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import * as Sentry from '@sentry/react-native';
 
 Sentry.init({
-  dsn: "https://04b3849882e246c3a3252f0d09d5b9bf@o296856.ingest.us.sentry.io/4505223715946496",
+  dsn: 'https://04b3849882e246c3a3252f0d09d5b9bf@o296856.ingest.us.sentry.io/4505223715946496',
 
   // Configure Session Replay
   replaysSessionSampleRate: 0.1,
@@ -44,19 +45,21 @@ Sentry.init({
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+const cache = new InMemoryCache();
+
 const APIProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [client, setClient] = useState<ApolloClient<any> | null>(null);
 
-  const errorLink = onError(({ graphQLErrors }) => {
+  const errorLink = onError(({ graphQLErrors, ...rest }) => {
     if (graphQLErrors) {
-      console.log("graphQLErrors", graphQLErrors);
+      console.log('graphQLErrors', graphQLErrors, rest);
       const hasPermissionError = graphQLErrors.some(
-        (error) => error.message === "User not logged in",
+        (error) => error.message === 'User not logged in',
       );
 
       if (hasPermissionError) {
-        router.replace("/sign-in");
+        router.replace('/sign-in');
       }
     }
   });
@@ -68,33 +71,39 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
   // biome-ignore lint/correctness/useExhaustiveDependencies: not needed
   useEffect(() => {
     const initCache = async () => {
-      const cache = new InMemoryCache();
-      console.log("[Apollo] Initializing cache persistence");
+      console.log('[Apollo] Initializing cache persistence');
 
       try {
-        const persistor = new CachePersistor({
-          cache,
-          storage: new AsyncStorageWrapper(AsyncStorage),
-          debug: __DEV__,
-        });
+        // const persistor = new CachePersistor({
+        //   cache,
+        //   storage: new AsyncStorageWrapper(AsyncStorage),
+        //   debug: __DEV__,
+        // });
 
-        await persistor.restore();
+        // await persistor.restore();
+
+        const responseLogger = new ApolloLink((operation, forward) => {
+          return forward(operation).map((result) => {
+            console.info(operation);
+            return result;
+          });
+        });
 
         const apolloClient = new ApolloClient({
           cache,
-          link: errorLink.concat(
+          link: errorLink.concat(responseLogger).concat(
             new HttpLink({
-              uri: "https://2025.pycon.it/graphql",
-              credentials: "include",
+              uri: 'https://2025.pycon.it/graphql',
+              credentials: 'include',
             }),
           ),
         });
 
-        setPersistor(persistor);
+        // setPersistor(persistor);
         setClient(apolloClient);
-        console.log("[Apollo] Client created and initialized");
+        console.log('[Apollo] Client created and initialized');
       } catch (error) {
-        console.error("[Apollo] Error initializing cache:", error);
+        console.error('[Apollo] Error initializing cache:', error);
       }
     };
 
@@ -109,7 +118,7 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
     <ApolloProvider client={client}>
       <SessionProvider
         onSignOut={() => {
-          console.log("[Apollo] Signing out");
+          console.log('[Apollo] Signing out');
 
           persistor?.remove();
           persistor?.purge();
@@ -123,15 +132,33 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 if (__DEV__) {
-  console.log("Loading dev messages");
+  console.log('Loading dev messages');
   loadDevMessages();
   loadErrorMessages();
 }
 
+const AppStack = () => {
+  const { user } = useSession();
+
+  return (
+    <Stack>
+      <Stack.Protected guard={!!user}>
+        <Stack.Screen name="(auth)/(tabs)" options={{ headerShown: false }} />
+      </Stack.Protected>
+
+      <Stack.Protected guard={!user}>
+        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+      </Stack.Protected>
+
+      <Stack.Screen name="+not-found" />
+    </Stack>
+  );
+};
+
 export default function RootLayout() {
   const [loaded] = useFonts({
-    GeneralSans: require("../assets/fonts/GeneralSans-Regular.otf"),
-    GeneralSansSemibold: require("../assets/fonts/GeneralSans-Semibold.otf"),
+    GeneralSans: require('../assets/fonts/GeneralSans-Regular.otf'),
+    GeneralSansSemibold: require('../assets/fonts/GeneralSans-Semibold.otf'),
   });
 
   useEffect(() => {
@@ -148,10 +175,10 @@ export default function RootLayout() {
     <PostHogProvider
       apiKey="phc_fsvj5ZUObZDpYQ4ggQgHt1lG8UY3E2z683TqjOeLDEr"
       options={{
-        host: "https://eu.i.posthog.com",
+        host: 'https://eu.i.posthog.com',
         enableSessionReplay: true,
         preloadFeatureFlags: true,
-        persistence: "memory",
+        persistence: 'memory',
         sessionReplayConfig: {
           // Whether text inputs are masked. Default is true.
           // Password inputs are always masked regardless
@@ -178,17 +205,7 @@ export default function RootLayout() {
           <BottomSheetModalProvider>
             <KeyboardProvider>
               <TalkConfigurationProvider>
-                <Stack>
-                  <Stack.Screen
-                    name="(auth)"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="sign-in"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen name="+not-found" />
-                </Stack>
+                <AppStack />
                 <StatusBar style="auto" />
               </TalkConfigurationProvider>
             </KeyboardProvider>

@@ -3,7 +3,7 @@ import { useSuspenseQuery } from '@apollo/client';
 import { useCurrentConference } from '@/hooks/use-current-conference';
 import { ITEM_FRAGMENT, type Item } from '@/components/session-item';
 import { parseISO, format, isSameDay } from 'date-fns';
-
+import { useSession } from '@/context/auth';
 export type ItemWithDuration = Omit<Item, 'duration'> & { duration: number };
 
 type Slot =

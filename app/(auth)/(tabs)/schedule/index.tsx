@@ -8,7 +8,6 @@ import { parseISO } from 'date-fns';
 import { useCallback, useMemo, useState } from 'react';
 import { Text, TextInput, View, TouchableOpacity } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Button } from '@/components/ui/button';
 import { Path } from 'react-native-svg';
 import Svg from 'react-native-svg';
 import { useSession } from '@/context/auth';

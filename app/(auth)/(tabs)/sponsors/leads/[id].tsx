@@ -25,11 +25,21 @@ export default function ScanPage() {
   });
 
   if (loading) {
-    return <Text>Loading...</Text>;
+    return (
+      <>
+        <Stack.Screen options={{ title: 'Loading...' }} />
+        <Text>Loading...</Text>
+      </>
+    );
   }
 
   if (!data || !data.badgeScan) {
-    return <Text>No data</Text>;
+    return (
+      <>
+        <Stack.Screen options={{ title: 'No data' }} />
+        <Text>No data</Text>
+      </>
+    );
   }
 
   return (

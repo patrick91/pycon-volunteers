@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { Text, View, StyleSheet, Button } from 'react-native';
+import { Text, View, StyleSheet, Button, Platform } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
 import { useIsEmulator } from 'react-native-device-info';
 
@@ -18,6 +18,7 @@ import { graphql } from '@/graphql';
 import { useMutation } from '@apollo/client';
 import { UserProfile } from '@/components/sponsors/user-profile';
 import { useCurrentConference } from '@/hooks/use-current-conference';
+import { useIsFocused } from '@react-navigation/native';
 const SCAN_BADGE_MUTATION = graphql(`
   mutation ScanBadge($input: ScanBadgeInput!) {
     scanBadge(input: $input) {
@@ -44,10 +45,7 @@ export default function SponsorScan() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState<string | null>(null);
 
-  const [scanBadge, { loading, error, data }] =
-    useMutation(SCAN_BADGE_MUTATION);
-
-  console.log(loading, error, data);
+  const [scanBadge, { loading, data }] = useMutation(SCAN_BADGE_MUTATION);
 
   const { result: isEmulator } = useIsEmulator();
 
@@ -77,8 +75,6 @@ export default function SponsorScan() {
     setScanned(data);
     personSheet.current?.present();
 
-    console.log(data);
-
     scanBadge({
       variables: {
         input: {
@@ -89,12 +85,45 @@ export default function SponsorScan() {
     });
   };
 
+  const focused = useIsFocused();
+
   if (hasPermission === null) {
-    return <Text>Requesting for camera permission</Text>;
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text>Requesting for camera permission</Text>
+      </View>
+    );
   }
 
   if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
+    return (
+      <View className="flex-1 justify-center items-center gap-4">
+        <Text className="text-lg font-semibold">No access to camera</Text>
+        <Text className="text-center text-gray-600 px-8">
+          To enable camera access:
+        </Text>
+        {Platform.OS === 'ios' ? (
+          <View className="px-8">
+            <Text className="font-semibold">iOS Instructions:</Text>
+            <Text>
+              1. Go to Settings {'>'} Privacy {'>'} Camera
+            </Text>
+            <Text>2. Find this app and toggle camera access on</Text>
+          </View>
+        ) : (
+          <View className="px-8">
+            <Text className="font-semibold">Android Instructions:</Text>
+            <Text>1. Go to Settings {'>'} Apps</Text>
+            <Text>2. Find this app and tap Permissions</Text>
+            <Text>3. Toggle camera access on</Text>
+          </View>
+        )}
+      </View>
+    );
+  }
+
+  if (!focused) {
+    return null;
   }
 
   return (

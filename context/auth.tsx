@@ -3,12 +3,11 @@ import {
   createContext,
   type PropsWithChildren,
   useEffect,
-} from "react";
-import { useStorageState } from "@/hooks/use-storage-state";
-import { useRouter } from "expo-router";
-import { usePostHog } from "posthog-react-native";
-import { graphql } from "@/graphql";
-import { useMutation } from "@apollo/client";
+} from 'react';
+import { useStorageState } from '@/hooks/use-storage-state';
+import { usePostHog } from 'posthog-react-native';
+import { graphql } from '@/graphql';
+import { useApolloClient, useMutation } from '@apollo/client';
 
 type User = {
   id: string;
@@ -21,7 +20,7 @@ type User = {
 
 const AuthContext = createContext<{
   signIn: (
-    user: Pick<User, "id" | "email" | "fullName" | "conferenceRoles">,
+    user: Pick<User, 'id' | 'email' | 'fullName' | 'conferenceRoles'>,
   ) => void;
   signOut: () => void;
   user: User | null;
@@ -38,9 +37,9 @@ const AuthContext = createContext<{
 // This hook can be used to access the user info.
 export function useSession() {
   const value = useContext(AuthContext);
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== 'production') {
     if (!value) {
-      throw new Error("useSession must be wrapped in a <SessionProvider />");
+      throw new Error('useSession must be wrapped in a <SessionProvider />');
     }
   }
 
@@ -59,7 +58,7 @@ export function SessionProvider({
   children,
   onSignOut,
 }: PropsWithChildren<{ onSignOut: () => void }>) {
-  const [[isLoading, sessionData], setSession] = useStorageState("session");
+  const [[isLoading, sessionData], setSession] = useStorageState('session');
   const [signOut, { loading: isSigningOut }] = useMutation(SIGN_OUT_MUTATION);
 
   const posthog = usePostHog();
@@ -68,7 +67,7 @@ export function SessionProvider({
 
   useEffect(() => {
     if (session) {
-      console.log("[Auth] Identifying user", session);
+      console.log('[Auth] Identifying user', session);
 
       posthog.identify(session.id, {
         email: session.email,
@@ -82,31 +81,38 @@ export function SessionProvider({
     posthog.reloadFeatureFlags();
   }, [session, posthog]);
 
-  const router = useRouter();
+  const client = useApolloClient();
+
   return (
     <AuthContext.Provider
       value={{
         signIn: (
-          user: Pick<User, "id" | "email" | "fullName" | "conferenceRoles">,
+          user: Pick<User, 'id' | 'email' | 'fullName' | 'conferenceRoles'>,
         ) => {
           const userInfo = {
             ...user,
-            canSeeSponsorSection: user.conferenceRoles.includes("SPONSOR"),
-            canSeeTalkTimer: user.conferenceRoles.includes("STAFF"),
+            canSeeSponsorSection: user.conferenceRoles.includes('SPONSOR'),
+            canSeeTalkTimer: user.conferenceRoles.includes('STAFF'),
           };
 
           setSession(JSON.stringify(userInfo));
+
+          // not fully sure why expo does this (if it is expo)
+          // but the schedule query seems to be triggered when showing
+          // the login screen, so it loads the data before the user is
+          // logged in.
+          client.resetStore();
         },
         signOut: async () => {
+          console.log('[Auth] Signing out');
+
           await signOut();
 
           setSession(null);
 
-          router.push("/sign-in");
-
           onSignOut();
 
-          // posthog.reset();
+          posthog.reset();
         },
         isLoading,
         isSigningOut,

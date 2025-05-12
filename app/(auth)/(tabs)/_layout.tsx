@@ -19,6 +19,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
+        freezeOnBlur: true,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
