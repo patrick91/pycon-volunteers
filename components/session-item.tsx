@@ -41,15 +41,6 @@ type SessionItemProps = {
 
 export function SessionItem({ session, rooms }: SessionItemProps) {
   const start = new Date(session.start);
-  const formattedStart = start.toLocaleTimeString('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-  const end = new Date(session.end);
-  const formattedEnd = end.toLocaleTimeString('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 
   const isTalkManager = session.userIsTalkManager;
 

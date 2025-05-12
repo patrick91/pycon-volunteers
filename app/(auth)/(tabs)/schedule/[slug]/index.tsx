@@ -58,26 +58,23 @@ function SpeakersView({
           key={speaker.id}
           relativeToDirectory
         >
-          <View className="flex-row gap-2 pr-4 border-b-2">
-            <View className="border-r-2">
+          <View className="flex-row pr-4 border-b-2">
+            <View className="border-r-2 bg-red-500 w-[82px] h-[80px]">
               {speaker?.participant?.photoSmall ? (
                 <Image
                   source={{ uri: speaker.participant?.photoSmall }}
-                  style={{ width: 80, height: 80, backgroundColor: '#f0c674' }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                  }}
                   contentFit="cover"
                 />
               ) : (
-                <View
-                  style={{
-                    width: 80,
-                    height: 80,
-                    backgroundColor: '#f0c674',
-                  }}
-                />
+                <View className="size-full bg-[#f0c674]" />
               )}
             </View>
 
-            <View className="flex-1 py-2">
+            <View className="flex-1 pl-2 py-2 h-[80px]">
               <Text className="text-xl font-bold">{speaker.fullName}</Text>
               <Text numberOfLines={2}>
                 {speaker.participant?.bio || 'No bio available'}
@@ -288,22 +285,6 @@ function TalkConfigurationView({ talk }: { talk: { id: string } }) {
 import * as TaskManager from 'expo-task-manager';
 import { useSession } from '@/context/auth';
 import { NowProvider } from '@/components/timer/context';
-
-const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
-
-TaskManager.defineTask(
-  BACKGROUND_NOTIFICATION_TASK,
-  async ({ data, error, executionInfo }) => {
-    console.log('Received a notification in the background!');
-    // Do something with the notification data
-  },
-);
-
-Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
-Notifications.addNotificationReceivedListener((notification) => {
-  console.log('Received a notification in the foreground!');
-  // Do something with the notification data
-});
 
 export function Session() {
   const slug = useLocalSearchParams().slug as string;
