@@ -23,7 +23,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "it.pycon.conference"
+      "package": "it.pycon.conference",
+      "permissions": ["android.permission.CAMERA"]
     },
     "web": {
       "bundler": "metro",
@@ -94,6 +95,12 @@
           }
         }
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/41750415-3711-4023-9e9c-6b7a56dee328"
     }
   }
 }
