@@ -3,12 +3,12 @@ import { useEmojiLoading } from '@/hooks/use-emoji-loading';
 
 export const Button = ({
   children,
-  loading,
+  loading = false,
   disabled,
   ...props
 }: {
   children: string;
-  loading: boolean;
+  loading?: boolean;
   onPress: () => void;
   disabled?: boolean;
 }) => {

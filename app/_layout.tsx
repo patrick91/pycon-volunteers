@@ -51,19 +51,6 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [client, setClient] = useState<ApolloClient<any> | null>(null);
 
-  const errorLink = onError(({ graphQLErrors, ...rest }) => {
-    if (graphQLErrors) {
-      console.log('graphQLErrors', graphQLErrors, rest);
-      const hasPermissionError = graphQLErrors.some(
-        (error) => error.message === 'User not logged in',
-      );
-
-      if (hasPermissionError) {
-        router.replace('/sign-in');
-      }
-    }
-  });
-
   const [persistor, setPersistor] =
     useState<CachePersistor<NormalizedCacheObject>>();
 
@@ -91,7 +78,7 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
 
         const apolloClient = new ApolloClient({
           cache,
-          link: errorLink.concat(responseLogger).concat(
+          link: responseLogger.concat(
             new HttpLink({
               uri: 'https://2025.pycon.it/graphql',
               credentials: 'include',
@@ -137,18 +124,34 @@ if (__DEV__) {
   loadErrorMessages();
 }
 
-const AppStack = () => {
-  const { user } = useSession();
+const AppStack = ({ fontsLoaded }: { fontsLoaded: boolean }) => {
+  const { user, isLoading } = useSession();
+
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    if (fontsLoaded && !isLoading) {
+      SplashScreen.hideAsync();
+      setIsReady(true);
+    }
+  }, [fontsLoaded, isLoading]);
+
+  if (!isReady) {
+    return null;
+  }
 
   return (
     <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
       <Stack.Protected guard={!!user}>
-        <Stack.Screen name="(auth)/(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)/sponsors" />
       </Stack.Protected>
 
-      <Stack.Protected guard={!user}>
-        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-      </Stack.Protected>
+      <Stack.Screen
+        name="sign-in"
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
 
       <Stack.Screen name="+not-found" />
     </Stack>
@@ -160,12 +163,6 @@ export default function RootLayout() {
     GeneralSans: require('../assets/fonts/GeneralSans-Regular.otf'),
     GeneralSansSemibold: require('../assets/fonts/GeneralSans-Semibold.otf'),
   });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
 
   if (!loaded) {
     return null;
@@ -205,7 +202,7 @@ export default function RootLayout() {
           <BottomSheetModalProvider>
             <KeyboardProvider>
               <TalkConfigurationProvider>
-                <AppStack />
+                <AppStack fontsLoaded={loaded} />
                 <StatusBar style="auto" />
               </TalkConfigurationProvider>
             </KeyboardProvider>

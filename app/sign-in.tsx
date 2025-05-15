@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   Text,
@@ -7,23 +7,23 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
-} from "react-native";
-import { z } from "zod";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/form/button";
-import { graphql, readFragment } from "@/graphql";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Logo } from "@/components/logo";
-import { useMutation } from "@apollo/client";
-import { useRouter } from "expo-router";
-import { useSession } from "@/context/auth";
-import { USER_PROFILE_FRAGMENT } from "./(auth)/(tabs)/profile";
-import { useCurrentConference } from "@/hooks/use-current-conference";
+} from 'react-native';
+import { z } from 'zod';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/form/button';
+import { graphql, readFragment } from '@/graphql';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Logo } from '@/components/logo';
+import { useMutation } from '@apollo/client';
+import { useRouter } from 'expo-router';
+import { useSession } from '@/context/auth';
+import { USER_PROFILE_FRAGMENT } from './(tabs)/profile';
+import { useCurrentConference } from '@/hooks/use-current-conference';
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().email('Invalid email address'),
   password: z.string(),
 });
 
@@ -80,25 +80,25 @@ export default function SignIn() {
       variables: { ...data, conferenceCode: code },
     });
 
-    if (result.data?.login.__typename === "LoginSuccess") {
+    if (result.data?.login.__typename === 'LoginSuccess') {
       const user = readFragment(USER_PROFILE_FRAGMENT, result.data.login.user);
 
       signIn(user);
 
-      router.replace("/(auth)/(tabs)");
-    } else if (result.data?.login.__typename === "LoginErrors") {
+      router.dismiss();
+    } else if (result.data?.login.__typename === 'LoginErrors') {
       if (result.data.login.errors.email) {
-        setError("email", {
-          message: result.data.login.errors.email.join(", "),
+        setError('email', {
+          message: result.data.login.errors.email.join(', '),
         });
       }
       if (result.data.login.errors.password) {
-        setError("password", {
-          message: result.data.login.errors.password.join(", "),
+        setError('password', {
+          message: result.data.login.errors.password.join(', '),
         });
       }
-    } else if (result.data?.login.__typename === "WrongEmailOrPassword") {
-      setError("password", {
+    } else if (result.data?.login.__typename === 'WrongEmailOrPassword') {
+      setError('password', {
         message: result.data.login.message,
       });
     }
@@ -106,7 +106,7 @@ export default function SignIn() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 bg-white"
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
