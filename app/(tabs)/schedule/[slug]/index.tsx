@@ -127,6 +127,7 @@ const TALK_QUERY = graphql(
           rooms {
             id
             name
+            type
           }
 
           language {
@@ -181,9 +182,6 @@ const useNextSession = (current: {
     name: string;
   }[];
 }) => {
-  // TODO: implement this again
-  return null;
-
   const { schedule } = useSchedule();
 
   const dayString = current.start.split('T')[0];
@@ -198,12 +196,17 @@ const useNextSession = (current: {
 
   const currentEnd = parseISO(current.end);
 
-  const nextSession = room?.sessions.find(({ session }) => {
-    if (session.title.toLowerCase().includes('room change')) {
+  const nextSession = day.items.find((item) => {
+    if (item.title.toLowerCase().includes('room change')) {
       return false;
     }
 
-    const sessionStart = parseISO(session.start);
+    const sessionStart = parseISO(item.start);
+
+    // next talk should be in the same room
+    if (item.rooms.length > 0 && item.rooms[0].name !== currentRoom) {
+      return false;
+    }
 
     return (
       isAfter(sessionStart, currentEnd) || isEqual(sessionStart, currentEnd)
@@ -215,6 +218,7 @@ const useNextSession = (current: {
 
 function UpNextView({
   current,
+  rooms,
 }: {
   current: {
     start: string;
@@ -223,6 +227,10 @@ function UpNextView({
       name: string;
     }[];
   };
+  rooms: {
+    name: string;
+    type: string;
+  }[];
 }) {
   const nextSession = useNextSession(current);
 
@@ -233,9 +241,9 @@ function UpNextView({
   return (
     <View className="px-4 mt-4 border-t-2 pt-4 gap-2">
       <Text className="text-2xl font-bold">Up next:</Text>
-      <Link href={`/schedule/${nextSession.session.slug}`}>
+      <Link href={`/schedule/${nextSession.slug}`}>
         <View className="border-2 border-black p-3 min-h-[110px] bg-[#FCE8DE] w-full">
-          <SessionItem session={nextSession.session} />
+          <SessionItem session={nextSession} rooms={rooms} />
         </View>
       </Link>
     </View>
@@ -282,9 +290,9 @@ function TalkConfigurationView({ talk }: { talk: { id: string } }) {
   );
 }
 
-import * as TaskManager from 'expo-task-manager';
 import { useSession } from '@/context/auth';
 import { NowProvider } from '@/components/timer/context';
+import { getRoomText } from '@/utils/schedule/get-room-text';
 
 export function Session() {
   const slug = useLocalSearchParams().slug as string;
@@ -293,6 +301,8 @@ export function Session() {
   const enableLiveActivity = useFeatureFlag('enable-live-activity');
 
   const { user } = useSession();
+
+  const { schedule } = useSchedule();
 
   const { data } = useSuspenseQuery(TALK_QUERY, {
     variables: { slug, code, language },
@@ -303,6 +313,10 @@ export function Session() {
   if (!talk) {
     throw new Error('Talk not found');
   }
+
+  const dayString = talk.start.split('T')[0];
+
+  const day = schedule[dayString];
 
   const [activityIsRunning, setActivityIsRunning] = useState(
     () => isLiveActivityRunning,
@@ -360,7 +374,7 @@ export function Session() {
           endTime: formatDate(endTime),
           qaTime: formatDate(qaTime),
           roomChangeTime: formatDate(roomChangeTime),
-          nextTalk: nextSession?.session.title,
+          nextTalk: nextSession?.title,
         });
       } else {
         // Start a new activity
@@ -369,7 +383,7 @@ export function Session() {
           endTime: formatDate(endTime),
           qaTime: formatDate(qaTime),
           roomChangeTime: formatDate(roomChangeTime),
-          nextTalk: nextSession?.session.title,
+          nextTalk: nextSession?.title,
         });
       }
 
@@ -387,7 +401,9 @@ export function Session() {
     };
 
     setupNotifications();
-  }, [talk.id, talk.title, nextSession?.session.title, enableLiveActivity]);
+  }, [talk.id, talk.title, nextSession?.title, enableLiveActivity]);
+
+  const rooms = schedule[day]?.rooms ?? [];
 
   return (
     <ScrollView
@@ -403,8 +419,11 @@ export function Session() {
         </NowProvider>
       </View>
 
-      <View className="border-b-2 pb-4 px-4">
-        <Text className="text-4xl font-bold">{talk.title}</Text>
+      <View className="border-b-2 pb-4 px-4 flex gap-2">
+        <Text className="text-3xl font-bold">{talk.title}</Text>
+        <Text className="text-md text-gray-800">
+          Room: {getRoomText(talk, rooms)}
+        </Text>
       </View>
 
       <SpeakersView data={talk} />
@@ -420,7 +439,7 @@ export function Session() {
         <AbstractButton abstract={talk.abstract} />
       </View>
 
-      <UpNextView current={talk} />
+      <UpNextView current={talk} rooms={rooms} />
     </ScrollView>
   );
 }

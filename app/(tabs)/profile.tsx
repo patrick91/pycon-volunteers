@@ -7,6 +7,8 @@ import { usePostHog } from 'posthog-react-native';
 import { useCurrentConference } from '@/hooks/use-current-conference';
 import { useRouter } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
+import * as Application from 'expo-application';
+import Constants from 'expo-constants';
 
 export const USER_PROFILE_FRAGMENT = graphql(`
   fragment UserProfile on User {
@@ -164,6 +166,12 @@ const ProfileInfo = ({
       )}
 
       <TicketList data={data} />
+
+      <View className="mt-4">
+        <Text className="font-bold">
+          App version: {Application.nativeApplicationVersion}
+        </Text>
+      </View>
 
       <View className="mt-4">
         <Button
