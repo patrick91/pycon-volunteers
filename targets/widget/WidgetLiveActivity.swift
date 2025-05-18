@@ -18,12 +18,22 @@ struct WidgetLiveActivity: Widget {
                 .timeIntervalSince(currentTime)
 
             let hasQa = timeUntilRoomChange != timeUntilQA && timeUntilQA > 0
-
+            
             let endTime =
                 hasQa ? context.state.qaTime : context.state.roomChangeTime
 
             let text =
-                hasQa ? "Time until Q&aaaaaaaaaA" : "Time until Room Change"
+                hasQa ? "Time until Q&A" : "Time until Room Change"
+
+            let hasNext = context.state.nextTalk != nil && timeUntilRoomChange > 0
+            // Define these at the top of the closure
+            let mainBackgroundColor = hasNext ?
+             Color(#colorLiteral(red: 0.988, green: 0.91, blue: 0.871, alpha: 1)) :
+             Color(#colorLiteral(red: 0.918, green: 0.839, blue: 0.808, alpha: 1))
+            
+            let tintBackgroundColor = hasNext ?
+             Color(#colorLiteral(red: 0.918, green: 0.839, blue: 0.808, alpha: 1)) :
+             Color(#colorLiteral(red: 0.988, green: 0.91, blue: 0.871, alpha: 1))
 
             VStack(spacing: 0) {
                 if timeUntilRoomChange > 0 {
@@ -55,16 +65,7 @@ struct WidgetLiveActivity: Widget {
                             .font(.system(size: 36, weight: .semibold))
                             .foregroundColor(.black)
                         }.frame(minWidth: 110)
-                    }.padding().background(
-                        Color(
-                            #colorLiteral(
-                                red: 0.988,
-                                green: 0.91,
-                                blue: 0.871,
-                                alpha: 1
-                            )
-                        )
-                    )
+                    }.padding().background(mainBackgroundColor)
 
                 } else {
                     Text("Time for the next talk! 🔥")
@@ -72,17 +73,7 @@ struct WidgetLiveActivity: Widget {
                         .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(
-                            Color(
-                                #colorLiteral(
-                                    red: 0.988,
-                                    green: 0.91,
-                                    blue: 0.871,
-                                    alpha: 1
-                                )
-                            )
-                        )
-
+                        .background(mainBackgroundColor)
                 }
 
                 if let nextTalk = context.state.nextTalk {
@@ -101,6 +92,7 @@ struct WidgetLiveActivity: Widget {
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)  // Add alignment: .leading here
                         .padding()
+                        .background(tintBackgroundColor)
                 }
             }
             .activityBackgroundTint(
@@ -141,11 +133,13 @@ struct WidgetLiveActivity: Widget {
 
                 DynamicIslandExpandedRegion(.leading, priority: 1) {
 
-                    Text("Patrick Arminio, and maybe someone else")
-                        .font(.caption)
-                        .lineLimit(1)
-                        .fontWeight(.semibold)
-                        .padding(.leading, 8)
+                    if !context.state.speakerNames.isEmpty {
+                        Text(context.state.speakerNames.joined(separator: ", "))
+                            .font(.caption)
+                            .lineLimit(1)
+                            .fontWeight(.semibold)
+                            .padding(.leading, 8)
+                    }
 
                     Text(context.state.sessionTitle)
                         .multilineTextAlignment(.leading)
@@ -238,7 +232,8 @@ struct WidgetLiveActivity: Widget {
         sessionTitle: "Session 101: SwiftUI Basics With a very long text",
         qaTime: Date().addingTimeInterval(10 * 60),
         roomChangeTime: Date().addingTimeInterval(30 * 60),
-        nextTalk: "Session 102: Advanced SwiftUI also with a very long text :)"
+        nextTalk: "Session 102: Advanced SwiftUI also with a very long text :)",
+        speakerNames: ["Patrick Arminio", "Jane Doe"]
     )
 
     // Preview with room change in 5 minutes
@@ -247,7 +242,8 @@ struct WidgetLiveActivity: Widget {
         sessionTitle: "Session 101: SwiftUI Basics",
         qaTime: Date(),
         roomChangeTime: Date().addingTimeInterval(5 * 60),
-        nextTalk: "Session 102: Advanced SwiftUI"
+        nextTalk: "Session 102: Advanced SwiftUI",
+        speakerNames: ["Patrick Arminio"]
     )
 
     MyLiveActivityAttributes.MyLiveActivityState(
@@ -255,6 +251,7 @@ struct WidgetLiveActivity: Widget {
         sessionTitle: "Session 101: SwiftUI Basics",
         qaTime: Date().addingTimeInterval(-15),
         roomChangeTime: Date().addingTimeInterval(-5),
-        nextTalk: "Session 102: Advanced SwiftUI"
+        nextTalk: "Session 102: Advanced SwiftUI",
+        speakerNames: []
     )
 }

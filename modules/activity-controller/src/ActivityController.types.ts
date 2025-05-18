@@ -4,6 +4,7 @@ export type LiveActivityParams = {
   qaTime: string; // ISO string of when Q&A starts
   roomChangeTime: string; // ISO string of when room change happens
   nextTalk?: string;
+  speakerNames: string[];
 };
 
 export type StartLiveActivityFn = (
@@ -18,6 +19,7 @@ export type UpdateLiveActivityParams = {
   qaTime: string; // ISO string of when Q&A starts
   roomChangeTime: string; // ISO string of when room change happens
   nextTalk?: string;
+  speakerNames: string[];
 };
 
 export type UpdateLiveActivityFn = (

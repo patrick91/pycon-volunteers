@@ -8,6 +8,8 @@ import {
   updateLiveActivity,
 } from '@/modules/activity-controller';
 import * as Notifications from 'expo-notifications';
+import { readFragment, type FragmentOf } from '@/graphql';
+import { SPEAKERS_FRAGMENT } from '@/app/(tabs)/schedule/[slug]';
 
 const checkPermissions = async () => {
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -30,7 +32,7 @@ const setupNotifications = async ({
   talk: {
     id: string;
     title: string;
-  };
+  } & FragmentOf<typeof SPEAKERS_FRAGMENT>;
   nextSession?: {
     title: string;
   } | null;
@@ -54,6 +56,10 @@ const setupNotifications = async ({
     return `${date.toISOString().split('.')[0]}Z`;
   };
 
+  const { speakers } = readFragment(SPEAKERS_FRAGMENT, talk);
+
+  const speakerNames = speakers.map((speaker) => speaker.fullName);
+
   // Check if a Live Activity is already running
   if (isLiveActivityRunning()) {
     // Update the existing activity
@@ -63,6 +69,7 @@ const setupNotifications = async ({
       qaTime: formatDate(qaTime),
       roomChangeTime: formatDate(roomChangeTime),
       nextTalk: nextSession?.title,
+      speakerNames,
     });
   } else {
     // Start a new activity
@@ -72,6 +79,7 @@ const setupNotifications = async ({
       qaTime: formatDate(qaTime),
       roomChangeTime: formatDate(roomChangeTime),
       nextTalk: nextSession?.title,
+      speakerNames,
     });
   }
 
@@ -96,6 +104,7 @@ export function useTalkManagerNotifications({
   nextSession?: { title: string } | null;
 }) {
   const { user } = useSession();
+
   const enableLiveActivity = true; //useFeatureFlag('enable-live-activity');
 
   const canSeeNotifications = user?.canSeeTalkTimer && enableLiveActivity;

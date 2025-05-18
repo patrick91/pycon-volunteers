@@ -47,6 +47,7 @@ struct StartActivityArgs: Codable {
   let qaTime: String // ISO string
   let roomChangeTime: String // ISO string
   let nextTalk: String?
+  let speakerNames: [String]
 
   public static func fromJSON(rawData: String) -> Result<StartActivityArgs, Error> {
     do {
@@ -69,6 +70,7 @@ struct UpdateActivityArgs: Codable {
   let qaTime: String // ISO string
   let roomChangeTime: String // ISO string
   let nextTalk: String?
+  let speakerNames: [String]
 
   public static func fromJSON(rawData: String) -> Result<UpdateActivityArgs, Error> {
     do {
@@ -342,7 +344,8 @@ public class ActivityControllerModule: Module {
       sessionTitle: sessionTitle,
       qaTime: currentState.qaTime,
       roomChangeTime: currentState.roomChangeTime,
-      nextTalk: currentState.nextTalk
+      nextTalk: currentState.nextTalk,
+      speakerNames: currentState.speakerNames
     )
     
     Task {
@@ -438,7 +441,8 @@ public class ActivityControllerModule: Module {
           sessionTitle: args.sessionTitle,
           qaTime: qaTime,
           roomChangeTime: roomChangeTime,
-          nextTalk: args.nextTalk
+          nextTalk: args.nextTalk,
+          speakerNames: args.speakerNames
         )
 
         log.debug("Requesting activity with state: \(activityState)")
@@ -502,7 +506,8 @@ public class ActivityControllerModule: Module {
         sessionTitle: args.sessionTitle,
         qaTime: qaTime,
         roomChangeTime: roomChangeTime,
-        nextTalk: args.nextTalk
+        nextTalk: args.nextTalk,
+        speakerNames: args.speakerNames
       )
       
       Task {

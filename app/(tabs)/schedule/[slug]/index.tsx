@@ -165,14 +165,6 @@ const TALK_QUERY = graphql(
   [SPEAKERS_FRAGMENT],
 );
 
-const SectionButton = ({ title }: { title: string }) => {
-  return (
-    <TouchableOpacity className="bg-[#FCE8DE] p-4 border-2 border-black">
-      <Text className="text-black text-lg font-bold">{title}</Text>
-    </TouchableOpacity>
-  );
-};
-
 const useNextSession = (current: {
   start: string;
   end: string;

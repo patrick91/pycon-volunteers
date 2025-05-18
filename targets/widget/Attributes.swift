@@ -15,6 +15,7 @@
         var qaTime: Date
         var roomChangeTime: Date
         var nextTalk: String?
+        var speakerNames: [String]
     }
 
     public typealias MyLiveActivityState = ContentState
