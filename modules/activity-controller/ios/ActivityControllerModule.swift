@@ -1,6 +1,7 @@
 import ActivityKit
 import SwiftUI
 import ExpoModulesCore
+import UserNotifications
 
 // MARK: Exceptions
 
@@ -197,6 +198,37 @@ public class ActivityControllerModule: Module {
     return (endTime, qaTime, roomChangeTime)
   }
   
+  private func areNotificationsEnabled() async -> Bool {
+    let settings = await UNUserNotificationCenter.current().notificationSettings()
+    return settings.authorizationStatus == .authorized
+  }
+  
+  private func sendNotification(title: String, body: String) {
+    Task {
+      // Only send notification if notifications are enabled
+      guard await areNotificationsEnabled() else {
+        log.debug("Notifications are not enabled, skipping notification")
+        return
+      }
+      
+      let content = UNMutableNotificationContent()
+      content.title = title
+      content.body = body
+      content.sound = .default
+      content.interruptionLevel = .timeSensitive
+      
+      // Create a request without a trigger to send immediately
+      let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+      
+      do {
+        try await UNUserNotificationCenter.current().add(request)
+        log.debug("Successfully sent time-sensitive notification: \(title)")
+      } catch {
+        log.error("Error sending notification: \(error.localizedDescription)")
+      }
+    }
+  }
+  
   private func scheduleUpdates(qaTime: Date, roomChangeTime: Date, endTime: Date, sessionTitle: String) {
     // Cancel any existing timers
     qaTimer?.invalidate()
@@ -216,6 +248,11 @@ public class ActivityControllerModule: Module {
       let timer = Timer(timeInterval: qaInterval, repeats: false) { [weak self] timer in
         log.debug("Q&A timer fired")
         self?.updateActivityState(sessionTitle: sessionTitle)
+        // Send notification for Q&A
+        self?.sendNotification(
+          title: "Q&A Time",
+          body: "It's time for Q&A in \(sessionTitle)"
+        )
         timer.invalidate()
       }
       
@@ -245,6 +282,11 @@ public class ActivityControllerModule: Module {
       let timer = Timer(timeInterval: roomChangeInterval, repeats: false) { [weak self] timer in
         log.debug("Room change timer fired")
         self?.updateActivityState(sessionTitle: "Room Change")
+        // Send notification for room change
+        self?.sendNotification(
+          title: "Room Change",
+          body: "It's time to change rooms for the next session"
+        )
         timer.invalidate()
       }
       
