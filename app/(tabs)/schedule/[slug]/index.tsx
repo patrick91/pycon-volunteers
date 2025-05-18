@@ -1,25 +1,23 @@
+import { Timer } from '@/components/timer';
 import { type FragmentOf, graphql, readFragment } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
-import { Link, useLocalSearchParams, Stack } from 'expo-router';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { Link, Stack, useLocalSearchParams } from 'expo-router';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Markdown from 'react-native-markdown-display';
-import { Timer } from '@/components/timer';
-import { useFeatureFlag } from 'posthog-react-native';
 
-import { useSchedule } from '@/hooks/use-schedule';
-import { parseISO, isAfter, isEqual } from 'date-fns';
 import { SessionItem } from '@/components/session-item';
+import { NowProvider } from '@/components/timer/context';
+import { useSession } from '@/context/auth';
+import { useTalkConfiguration } from '@/context/talk-configuration';
+import { useSchedule } from '@/hooks/use-schedule';
+import { useTalkManagerNotifications } from '@/hooks/use-talk-manager-notifications';
+import { getRoomText } from '@/utils/schedule/get-room-text';
+import { isAfter, isEqual, parseISO } from 'date-fns';
 import { Image } from 'expo-image';
 import * as Notifications from 'expo-notifications';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useState } from 'react';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
-import { useTalkConfiguration } from '@/context/talk-configuration';
-import { isLiveActivityRunning } from '@/modules/activity-controller';
-import {
-  startLiveActivity,
-  stopLiveActivity,
-  updateLiveActivity,
-} from '@/modules/activity-controller';
+
 import { useCurrentConference } from '@/hooks/use-current-conference';
 
 export const SPEAKERS_FRAGMENT = graphql(`
@@ -190,10 +188,6 @@ const useNextSession = (current: {
 
   const currentRoom = current.rooms[0].name;
 
-  const room = day.rooms.find(
-    (room) => !(room instanceof String) && room.name === currentRoom,
-  );
-
   const currentEnd = parseISO(current.end);
 
   const nextSession = day.items.find((item) => {
@@ -290,15 +284,10 @@ function TalkConfigurationView({ talk }: { talk: { id: string } }) {
   );
 }
 
-import { useSession } from '@/context/auth';
-import { NowProvider } from '@/components/timer/context';
-import { getRoomText } from '@/utils/schedule/get-room-text';
-
 export function Session() {
   const slug = useLocalSearchParams().slug as string;
   const { code } = useCurrentConference();
   const language = 'en';
-  const enableLiveActivity = useFeatureFlag('enable-live-activity');
 
   const { user } = useSession();
 
@@ -318,92 +307,14 @@ export function Session() {
 
   const day = schedule[dayString];
 
-  const [activityIsRunning, setActivityIsRunning] = useState(
-    () => isLiveActivityRunning,
-  );
-
-  const handleStopLiveActivity = () => {
-    stopLiveActivity();
-  };
+  const rooms = day?.rooms ?? [];
 
   const nextSession = useNextSession(talk);
 
-  useEffect(() => {
-    if (enableLiveActivity === undefined) {
-      return;
-    }
-
-    if (!enableLiveActivity) {
-      console.log('Live activity is disabled');
-
-      return;
-    }
-
-    console.log('Live activity is enabled');
-
-    const setupNotifications = async () => {
-      const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      if (finalStatus !== 'granted') {
-        console.log('Failed to get push token for push notification!');
-        return;
-      }
-
-      const now = new Date();
-      const endTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes from now
-      const qaTime = new Date(now.getTime() + 0.5 * 60 * 1000); // 1 minute from now
-      const roomChangeTime = new Date(now.getTime() + 1 * 60 * 1000); // 2 minutes from now
-
-      // Ensure dates are properly formatted as ISO strings
-      const formatDate = (date: Date) => {
-        return `${date.toISOString().split('.')[0]}Z`;
-      };
-
-      // Check if a Live Activity is already running
-      if (isLiveActivityRunning()) {
-        // Update the existing activity
-        await updateLiveActivity({
-          sessionTitle: talk.title,
-          endTime: formatDate(endTime),
-          qaTime: formatDate(qaTime),
-          roomChangeTime: formatDate(roomChangeTime),
-          nextTalk: nextSession?.title,
-        });
-      } else {
-        // Start a new activity
-        await startLiveActivity({
-          sessionTitle: talk.title,
-          endTime: formatDate(endTime),
-          qaTime: formatDate(qaTime),
-          roomChangeTime: formatDate(roomChangeTime),
-          nextTalk: nextSession?.title,
-        });
-      }
-
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          data: {
-            talkId: talk.id,
-          },
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-          seconds: 2,
-        },
-      });
-    };
-
-    setupNotifications();
-  }, [talk.id, talk.title, nextSession?.title, enableLiveActivity]);
-
-  const rooms = schedule[day]?.rooms ?? [];
+  useTalkManagerNotifications({
+    talk,
+    nextSession,
+  });
 
   return (
     <ScrollView
