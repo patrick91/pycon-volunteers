@@ -10,11 +10,14 @@ import { useFeatureFlag } from 'posthog-react-native';
 import { useSession } from '@/context/auth';
 
 export default function TabLayout() {
-  const isSponsorSectionEnabled = useFeatureFlag('enable-sponsor-section');
+  const isSponsorSectionEnabled = useFeatureFlag(
+    'enable-sponsor-section',
+  ) as boolean;
+
   const { user } = useSession();
 
   const canSeeSponsorSection =
-    user?.canSeeSponsorSection && isSponsorSectionEnabled;
+    (user?.canSeeSponsorSection ?? false) && isSponsorSectionEnabled;
 
   return (
     <Tabs
@@ -57,13 +60,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="store" size={24} color={color} />
           ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="sponsors/leads/[id]"
-        options={{
-          href: null,
         }}
       />
 

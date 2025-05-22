@@ -77,8 +77,12 @@ const NotLoggedIn = () => {
   const router = useRouter();
 
   return (
-    <View className="flex-1 justify-center items-center">
-      <Text>Not logged in</Text>
+    <View className="flex-1 justify-center p-4">
+      <Text className="text-2xl font-bold">Hi there!</Text>
+
+      <Text className="text-sm text-gray-800 mb-4">
+        You're not logged in. Please sign in to view your profile.
+      </Text>
 
       <Button onPress={() => router.push('/sign-in')}>Sign In</Button>
     </View>
