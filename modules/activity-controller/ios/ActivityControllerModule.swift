@@ -1,7 +1,10 @@
 import ActivityKit
-import SwiftUI
+// import SwiftUI // Removed as not used
 import ExpoModulesCore
 import UserNotifications
+
+/// Buffer (in seconds) to add to staleDate for Live Activities
+private let staleDateBuffer: TimeInterval = 300
 
 // MARK: Exceptions
 
@@ -41,7 +44,14 @@ final class ActivityDataException: GenericException<String> {
 
 // MARK: Types
 
-struct StartActivityArgs: Codable {
+/// Protocol for types that provide date strings for endTime, qaTime, and roomChangeTime
+protocol ActivityDateArgs {
+  var endTime: String { get }
+  var qaTime: String { get }
+  var roomChangeTime: String { get }
+}
+
+struct StartActivityArgs: Codable, ActivityDateArgs {
   let sessionTitle: String
   let endTime: String // ISO string
   let qaTime: String // ISO string
@@ -49,6 +59,7 @@ struct StartActivityArgs: Codable {
   let nextTalk: String?
   let speakerNames: [String]
 
+  /// Parse from JSON string
   public static func fromJSON(rawData: String) -> Result<StartActivityArgs, Error> {
     do {
       log.debug("Attempting to parse JSON data: \(rawData)")
@@ -64,7 +75,7 @@ struct StartActivityArgs: Codable {
   }
 }
 
-struct UpdateActivityArgs: Codable {
+struct UpdateActivityArgs: Codable, ActivityDateArgs {
   let sessionTitle: String
   let endTime: String // ISO string
   let qaTime: String // ISO string
@@ -72,6 +83,7 @@ struct UpdateActivityArgs: Codable {
   let nextTalk: String?
   let speakerNames: [String]
 
+  /// Parse from JSON string
   public static func fromJSON(rawData: String) -> Result<UpdateActivityArgs, Error> {
     do {
       let decoder = JSONDecoder()
@@ -103,7 +115,8 @@ class DefinedActivityWrapper: ActivityWrapper {
   }
 }
 
-struct FallbackActivityWrapper: ActivityWrapper {}
+/// Placeholder for future expansion or fallback logic for ActivityWrapper
+struct FallbackActivityWrapper: ActivityWrapper {} // Not currently used, but reserved for future use
 
 struct StartActivityReturnType: Record {
   @Field
@@ -112,6 +125,7 @@ struct StartActivityReturnType: Record {
 
 // MARK: Helper functions
 
+/// Returns the current activity wrapper if available, otherwise nil.
 func getCurrentActivity() -> ActivityWrapper? {
   guard #available(iOS 16.2, *) else {
     return nil
@@ -124,6 +138,7 @@ func getCurrentActivity() -> ActivityWrapper? {
   }
 }
 
+/// Returns true if a live activity is running.
 func isActivityRunning() -> Bool {
   return getCurrentActivity() != nil
 }
@@ -134,9 +149,12 @@ public class ActivityControllerModule: Module {
   private var activityWrapper: ActivityWrapper?
   private var qaTimer: Timer?
   private var roomChangeTimer: Timer?
+  // Timers are retained as strong references. Ensure this module instance is retained as long as timers are needed.
+  // Thread safety: All timer access and mutation should occur on the main thread.
   
   // MARK: Helper functions for date handling
   
+  /// Parses a date string in ISO8601 format, supporting both fractional and non-fractional seconds.
   private func parseDate(_ dateString: String, field: String) throws -> Date {
     let formatters: [ISO8601DateFormatter] = [
       {
@@ -167,6 +185,7 @@ public class ActivityControllerModule: Module {
       """)
   }
   
+  /// Validates that the provided times are logically consistent.
   private func validateTimes(endTime: Date, qaTime: Date, roomChangeTime: Date) throws {
     let now = Date()
     log.debug("Validating times - now: \(now), endTime: \(endTime), qaTime: \(qaTime), roomChangeTime: \(roomChangeTime)")
@@ -184,7 +203,8 @@ public class ActivityControllerModule: Module {
     }
   }
   
-  private func parseDates(from args: StartActivityArgs) throws -> (endTime: Date, qaTime: Date, roomChangeTime: Date) {
+  /// Parses dates from any ActivityDateArgs type.
+  private func parseDates<T: ActivityDateArgs>(from args: T) throws -> (endTime: Date, qaTime: Date, roomChangeTime: Date) {
     let endTime = try parseDate(args.endTime, field: "endTime")
     let qaTime = try parseDate(args.qaTime, field: "qaTime")
     let roomChangeTime = try parseDate(args.roomChangeTime, field: "roomChangeTime")
@@ -192,19 +212,14 @@ public class ActivityControllerModule: Module {
     return (endTime, qaTime, roomChangeTime)
   }
   
-  private func parseDates(from args: UpdateActivityArgs) throws -> (endTime: Date, qaTime: Date, roomChangeTime: Date) {
-    let endTime = try parseDate(args.endTime, field: "endTime")
-    let qaTime = try parseDate(args.qaTime, field: "qaTime")
-    let roomChangeTime = try parseDate(args.roomChangeTime, field: "roomChangeTime")
-    try validateTimes(endTime: endTime, qaTime: qaTime, roomChangeTime: roomChangeTime)
-    return (endTime, qaTime, roomChangeTime)
-  }
-  
+  /// Checks if notifications are enabled for the app.
   private func areNotificationsEnabled() async -> Bool {
     let settings = await UNUserNotificationCenter.current().notificationSettings()
     return settings.authorizationStatus == .authorized
   }
   
+  /// Sends a time-sensitive notification if notifications are enabled.
+  /// Errors are only logged and not surfaced to the caller (fire-and-forget).
   private func sendNotification(title: String, body: String) {
     Task {
       // Only send notification if notifications are enabled
@@ -332,10 +347,10 @@ public class ActivityControllerModule: Module {
     // Create a more precise stale date calculation
     let staleDate: Date
     if now >= currentState.endTime {
-      staleDate = now.addingTimeInterval(300)
+      staleDate = now.addingTimeInterval(staleDateBuffer)
       log.debug("Using current time + 5min for stale date")
     } else {
-      staleDate = currentState.endTime.addingTimeInterval(300)
+      staleDate = currentState.endTime.addingTimeInterval(staleDateBuffer)
       log.debug("Using endTime + 5min for stale date")
     }
     
@@ -500,7 +515,6 @@ public class ActivityControllerModule: Module {
       
       let (endTime, qaTime, roomChangeTime) = try parseDates(from: args)
       
-      
       let updatedState = MyLiveActivityAttributes.MyLiveActivityState(
         endTime: endTime,
         sessionTitle: args.sessionTitle,
@@ -511,21 +525,21 @@ public class ActivityControllerModule: Module {
       )
       
       Task {
-        log.debug("Attempting to update activity \(activity.id)")
-        
-        let updatedContent = ActivityContent<MyLiveActivityAttributes.MyLiveActivityState>(
-          state: updatedState,
-          staleDate: endTime.addingTimeInterval(300) // Add 5 minutes buffer
-        )
-        
-        try await activity.update(updatedContent)
-        
-        log.debug("Successfully updated activity with ID: \(activity.id)")
-        
-        // Reschedule updates with new times
-        scheduleUpdates(qaTime: qaTime, roomChangeTime: roomChangeTime, endTime: endTime, sessionTitle: args.sessionTitle)
-          
-        promise.resolve()
+        do {
+          log.debug("Attempting to update activity \(activity.id)")
+          let updatedContent = ActivityContent<MyLiveActivityAttributes.MyLiveActivityState>(
+            state: updatedState,
+            staleDate: endTime.addingTimeInterval(staleDateBuffer) // Add 5 minutes buffer
+          )
+          try await activity.update(updatedContent)
+          log.debug("Successfully updated activity with ID: \(activity.id)")
+          // Reschedule updates with new times
+          scheduleUpdates(qaTime: qaTime, roomChangeTime: roomChangeTime, endTime: endTime, sessionTitle: args.sessionTitle)
+          promise.resolve()
+        } catch {
+          log.error("Failed to update activity: \(error)")
+          promise.reject(error)
+        }
       }
     }
 
@@ -541,11 +555,16 @@ public class ActivityControllerModule: Module {
       log.debug("Stopping activity \(activity.id)")
 
       Task {
-        await activity.end(nil, dismissalPolicy: .immediate)
-        log.debug("Stopped activity \(activity.id)")
-        // Cancel scheduled updates instead of stopping timer
-        cancelScheduledUpdates()
-        return promise.resolve()
+        do {
+          await activity.end(nil, dismissalPolicy: .immediate)
+          log.debug("Stopped activity \(activity.id)")
+          // Cancel scheduled updates instead of stopping timer
+          cancelScheduledUpdates()
+          promise.resolve()
+        } catch {
+          log.error("Failed to stop activity: \(error)")
+          promise.reject(error)
+        }
       }
     }
 

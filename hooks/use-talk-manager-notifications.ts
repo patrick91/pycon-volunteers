@@ -1,6 +1,6 @@
 import { useSession } from '@/context/auth';
 import { useFeatureFlag } from 'posthog-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { isLiveActivityRunning } from '@/modules/activity-controller';
 import {
   startLiveActivity,
