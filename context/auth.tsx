@@ -91,7 +91,9 @@ export function SessionProvider({
         ) => {
           const userInfo = {
             ...user,
-            canSeeSponsorSection: user.conferenceRoles.includes('SPONSOR'),
+            canSeeSponsorSection:
+              user.conferenceRoles.includes('SPONSOR') ||
+              user.conferenceRoles.includes('STAFF'),
             canSeeTalkTimer: user.conferenceRoles.includes('STAFF'),
           };
 

@@ -10,14 +10,9 @@ import { useFeatureFlag } from 'posthog-react-native';
 import { useSession } from '@/context/auth';
 
 export default function TabLayout() {
-  const isSponsorSectionEnabled = useFeatureFlag(
-    'enable-sponsor-section',
-  ) as boolean;
-
   const { user } = useSession();
 
-  const canSeeSponsorSection =
-    (user?.canSeeSponsorSection ?? false) && isSponsorSectionEnabled;
+  const canSeeSponsorSection = user?.canSeeSponsorSection ?? false;
 
   return (
     <Tabs
