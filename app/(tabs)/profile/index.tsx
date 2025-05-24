@@ -6,9 +6,8 @@ import { Button } from '@/components/form/button';
 import { usePostHog } from 'posthog-react-native';
 import { useCurrentConference } from '@/hooks/use-current-conference';
 import { useRouter } from 'expo-router';
-import QRCode from 'react-native-qrcode-svg';
+
 import * as Application from 'expo-application';
-import Constants from 'expo-constants';
 
 export const USER_PROFILE_FRAGMENT = graphql(`
   fragment UserProfile on User {
@@ -19,58 +18,15 @@ export const USER_PROFILE_FRAGMENT = graphql(`
   }
 `);
 
-const USER_TICKETS_FRAGMENT = graphql(`
-  fragment UserTickets on User {
-    tickets(conference: $conferenceCode, language: "en") {
-      id
-      hashid
-      attendeeName {
-        scheme
-        parts
-      }
-      attendeeEmail
-      secret
-      variation
-      role
-      item {
-        id
-        name
-        language
-        description
-        category
-        admission
-        variations {
-          id
-          value
-        }
-        questions {
-          id
-          hidden
-          answer {
-            answer
-            options
-          }
-          name
-          options {
-            id
-            name
-          }
-        }
-      }
-    }
-  }
-`);
-
 const USER_PROFILE_QUERY = graphql(
   `
   query UserProfile($conferenceCode: String!) {
     me {
       ...UserProfile
-      ...UserTickets
     }
   }
 `,
-  [USER_PROFILE_FRAGMENT, USER_TICKETS_FRAGMENT],
+  [USER_PROFILE_FRAGMENT],
 );
 
 const NotLoggedIn = () => {
@@ -89,53 +45,14 @@ const NotLoggedIn = () => {
   );
 };
 
-const getAttendeeName = (
-  attendeeName: {
-    scheme: string;
-    // biome-ignore lint/suspicious/noExplicitAny: pretix api :)
-    parts: any;
-  } | null,
-) => {
-  if (!attendeeName) {
-    return 'Unknown';
-  }
-
-  if (attendeeName.scheme !== 'given_family') {
-    return 'Unknown';
-  }
-
-  return `${attendeeName.parts.given_name} ${attendeeName.parts.family_name}`;
-};
-
-const TicketList = ({
-  data,
-}: { data: FragmentOf<typeof USER_TICKETS_FRAGMENT> }) => {
-  const { tickets } = readFragment(USER_TICKETS_FRAGMENT, data);
-
-  return (
-    <View className="mt-4">
-      <Text className="font-bold">Tickets</Text>
-
-      {tickets.map((ticket) => (
-        <View key={ticket.id} className="flex gap-2">
-          <Text>{getAttendeeName(ticket.attendeeName)}</Text>
-          <Text>{ticket.item.name}</Text>
-
-          <QRCode value={ticket.secret} size={200} />
-        </View>
-      ))}
-    </View>
-  );
-};
-
 const ProfileInfo = ({
   data,
 }: {
-  data?: FragmentOf<typeof USER_PROFILE_FRAGMENT> &
-    FragmentOf<typeof USER_TICKETS_FRAGMENT>;
+  data?: FragmentOf<typeof USER_PROFILE_FRAGMENT>;
 }) => {
   const { signOut, isSigningOut } = useSession();
   const posthog = usePostHog();
+  const router = useRouter();
 
   if (!data) {
     return <NotLoggedIn />;
@@ -169,12 +86,16 @@ const ProfileInfo = ({
         </View>
       )}
 
-      <TicketList data={data} />
-
       <View className="mt-4">
         <Text className="font-bold">
           App version: {Application.nativeApplicationVersion}
         </Text>
+      </View>
+
+      <View className="mt-4">
+        <Button onPress={() => router.push('/profile/tickets')}>
+          View tickets
+        </Button>
       </View>
 
       <View className="mt-4">
