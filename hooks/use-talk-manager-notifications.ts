@@ -105,7 +105,7 @@ export function useTalkManagerNotifications({
 }) {
   const { user } = useSession();
 
-  const enableLiveActivity = true; //useFeatureFlag('enable-live-activity');
+  const enableLiveActivity = useFeatureFlag('enable-live-activity');
 
   const canSeeNotifications = user?.canSeeTalkTimer && enableLiveActivity;
 
