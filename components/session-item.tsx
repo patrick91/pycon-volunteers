@@ -2,6 +2,7 @@ import { View, Text } from 'react-native';
 import { graphql, type ResultOf } from '@/graphql';
 import { Image } from 'expo-image';
 import { getRoomText } from '@/utils/schedule/get-room-text';
+import { format } from 'date-fns';
 
 export const ITEM_FRAGMENT = graphql(`
   fragment Item on ScheduleItem {
@@ -37,9 +38,10 @@ type SessionItemProps = {
     name: string;
     type: string;
   }[];
+  showDate?: boolean;
 };
 
-export function SessionItem({ session, rooms }: SessionItemProps) {
+export function SessionItem({ session, rooms, showDate }: SessionItemProps) {
   const start = new Date(session.start);
 
   const isTalkManager = session.userIsTalkManager;
@@ -48,6 +50,12 @@ export function SessionItem({ session, rooms }: SessionItemProps) {
 
   return (
     <View className="w-full">
+      {showDate && (
+        <Text className="font-sans-semibold text-xl pr-8">
+          {format(start, 'EEEE, MMMM d')}
+        </Text>
+      )}
+
       {isTalkManager && (
         <View className="rounded-full bg-purple-400 absolute right-0 top-0 size-4" />
       )}

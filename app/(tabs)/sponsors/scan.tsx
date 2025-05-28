@@ -95,7 +95,6 @@ export default function SponsorScan() {
   const personSheet = useRef<BottomSheetModal>(null);
 
   const renderBackdrop = useCallback((props: any) => {
-    console.log('props', props);
     return (
       <BottomSheetBackdrop
         {...props}

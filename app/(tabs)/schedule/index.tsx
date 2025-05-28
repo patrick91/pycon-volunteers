@@ -5,7 +5,7 @@ import { type Item, SessionItem } from '@/components/session-item';
 import { type ItemWithDuration, useSchedule } from '@/hooks/use-schedule';
 import { LegendList } from '@legendapp/list';
 import { parseISO } from 'date-fns';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Text, TextInput, View, TouchableOpacity } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Path } from 'react-native-svg';
@@ -31,10 +31,12 @@ function ScheduleListView({
   items,
   searchInput,
   rooms,
+  showDate,
 }: {
   items: ItemWithDuration[];
   searchInput: React.ReactNode;
   rooms: { name: string; type: string }[];
+  showDate: boolean;
 }) {
   // Group sessions by time
   const sessionsByTime = useMemo(() => {
@@ -94,31 +96,34 @@ function ScheduleListView({
   }, [sortedTimeSlots]);
 
   const keyExtractor = useCallback((item: ScheduleFlatListItem) => item.id, []);
-  const renderItem = useCallback(({ item }: { item: ScheduleFlatListItem }) => {
-    if (item.type === 'time_header') {
+  const renderItem = useCallback(
+    ({ item }: { item: ScheduleFlatListItem }) => {
+      if (item.type === 'time_header') {
+        return (
+          <View className="bg-white p-4 border-b-2 border-black">
+            <Text className="text-lg font-bold">
+              {item.time.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </Text>
+          </View>
+        );
+      }
+
+      const { session } = item;
+
       return (
-        <View className="bg-white p-4 border-b-2 border-black">
-          <Text className="text-lg font-bold">
-            {item.time.toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </Text>
-        </View>
+        <Link
+          href={`/schedule/${session.slug}`}
+          className="p-4 min-h-[120px] border-b-2 border-black w-full bg-[#FCE8DE]"
+        >
+          <SessionItem session={session} rooms={rooms} showDate={showDate} />
+        </Link>
       );
-    }
-
-    const { session } = item;
-
-    return (
-      <Link
-        href={`/schedule/${session.slug}`}
-        className="p-4 min-h-[120px] border-b-2 border-black w-full bg-[#FCE8DE]"
-      >
-        <SessionItem session={session} rooms={rooms} />
-      </Link>
-    );
-  }, []);
+    },
+    [rooms, showDate],
+  );
 
   const listHeader = useMemo(() => {
     return (
@@ -165,6 +170,7 @@ export default function SchedulePage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showOnlyManagedTalks, setShowOnlyManagedTalks] = useState(false);
+  const [showDate, setShowDate] = useState(false);
   const { user } = useSession();
 
   const allItems = useMemo(() => {
@@ -201,6 +207,12 @@ export default function SchedulePage() {
   const handleShowOnlyManagedTalks = () => {
     setShowOnlyManagedTalks(!showOnlyManagedTalks);
   };
+
+  useEffect(() => {
+    const shouldShowDate = !!searchQuery || !!showOnlyManagedTalks;
+
+    setShowDate(shouldShowDate);
+  }, [searchQuery, showOnlyManagedTalks]);
 
   const searchInput = (
     <TextInput
@@ -257,6 +269,7 @@ export default function SchedulePage() {
       <ScheduleListView
         items={displayedItems}
         searchInput={searchInput}
+        showDate={showDate}
         rooms={schedule[day]?.rooms ?? []}
       />
     </View>
