@@ -2,7 +2,13 @@ import { Timer } from '@/components/timer';
 import { type FragmentOf, graphql, readFragment } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
 import { Link, Stack, useLocalSearchParams } from 'expo-router';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Markdown from 'react-native-markdown-display';
 
 import { SessionItem } from '@/components/session-item';
@@ -17,6 +23,7 @@ import { Image } from 'expo-image';
 import * as Notifications from 'expo-notifications';
 import { Suspense, useState } from 'react';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
+import * as WebBrowser from 'expo-web-browser';
 
 import { useCurrentConference } from '@/hooks/use-current-conference';
 
@@ -94,6 +101,19 @@ function AbstractButton({ abstract }: { abstract: string }) {
     >
       <Text className="text-black text-lg font-bold">Abstract</Text>
     </Link>
+  );
+}
+
+function SlidoButton({ slidoUrl }: { slidoUrl: string }) {
+  return (
+    <Pressable
+      onPress={() => {
+        WebBrowser.openBrowserAsync(slidoUrl);
+      }}
+      className="bg-[#FCE8DE] p-4 border-2 border-black"
+    >
+      <Text className="text-black text-lg font-bold">Slido</Text>
+    </Pressable>
   );
 }
 
@@ -340,6 +360,7 @@ export function Session() {
 
       <View className="px-4 mt-4 flex-row gap-2">
         <AbstractButton abstract={talk.abstract} />
+        <SlidoButton slidoUrl={talk.slidoUrl} />
       </View>
 
       <UpNextView current={talk} rooms={rooms} />
