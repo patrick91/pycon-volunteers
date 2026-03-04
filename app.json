@@ -2,12 +2,11 @@
   "expo": {
     "name": "PyCon Italia 2025",
     "slug": "pycon-volunteers",
-    "version": "1.1.4",
+    "version": "1.1.5",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "it.pycon.conference",
@@ -15,7 +14,9 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSSupportsLiveActivities": true
       },
-      "associatedDomains": ["webcredentials:pycon.it"],
+      "associatedDomains": [
+        "webcredentials:pycon.it"
+      ],
       "appleTeamId": "Z7Q27G3R62"
     },
     "android": {
@@ -24,7 +25,9 @@
         "backgroundColor": "#ffffff"
       },
       "package": "it.pycon.conference",
-      "permissions": ["android.permission.CAMERA"]
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -43,7 +46,6 @@
         }
       ],
       "expo-font",
-      "@bacons/apple-targets",
       [
         "expo-notifications",
         {
@@ -70,7 +72,9 @@
           "cameraPermission": "$(PRODUCT_NAME) uses the camera to scan participants' QR codes",
           "recordAudioAndroid": false
         }
-      ]
+      ],
+      "@sentry/react-native",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true
@@ -80,20 +84,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "41750415-3711-4023-9e9c-6b7a56dee328",
-        "build": {
-          "experimental": {
-            "ios": {
-              "appExtensions": [
-                {
-                  "bundleIdentifier": "it.pycon.conference.widget",
-                  "targetName": "widget",
-                  "entitlements": {}
-                }
-              ]
-            }
-          }
-        }
+        "projectId": "41750415-3711-4023-9e9c-6b7a56dee328"
       }
     },
     "runtimeVersion": {

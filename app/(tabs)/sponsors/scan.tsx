@@ -2,7 +2,6 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  useMemo,
   useRef,
 } from 'react';
 import { Text, View, StyleSheet, Platform } from 'react-native';
@@ -54,13 +53,14 @@ const LeadScanCamera = ({
       <View className="flex-1 justify-center items-center">
         <Text>Emulator</Text>
         <Button
-          title="Scan"
           onPress={() =>
             handleBarCodeScanned({
               data: 'https://pycon.it/b/wqdkk',
             })
           }
-        />
+        >
+          Scan
+        </Button>
       </View>
     );
   }
@@ -190,7 +190,7 @@ export default function SponsorScan() {
             ) : (
               <View className="flex-1 pb-14 w-full px-8">
                 <Text className="text-center text-gray-600 mb-4">
-                  Scanned! You can add notes to the attendee here, and you'll
+                  Scanned! You can add notes to the attendee here, and you&apos;ll
                   find the attendee in the list of leads.
                 </Text>
 

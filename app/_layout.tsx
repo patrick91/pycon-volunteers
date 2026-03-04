@@ -4,7 +4,7 @@ import {
   ThemeProvider,
 } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -48,7 +48,6 @@ SplashScreen.preventAutoHideAsync();
 const cache = new InMemoryCache();
 
 const APIProvider = ({ children }: { children: React.ReactNode }) => {
-  const router = useRouter();
   const [client, setClient] = useState<ApolloClient<any> | null>(null);
 
   const [persistor, setPersistor] =
@@ -144,10 +143,6 @@ const AppStack = ({ fontsLoaded }: { fontsLoaded: boolean }) => {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
-      <Stack.Protected guard={!!user}>
-        <Stack.Screen name="(tabs)/sponsors" />
-      </Stack.Protected>
-
       <Stack.Screen
         name="sign-in"
         options={{ headerShown: false, presentation: 'modal' }}
@@ -171,6 +166,7 @@ export default function RootLayout() {
   return (
     <PostHogProvider
       apiKey="phc_fsvj5ZUObZDpYQ4ggQgHt1lG8UY3E2z683TqjOeLDEr"
+      autocapture={{ captureScreens: false }}
       options={{
         host: 'https://eu.i.posthog.com',
         enableSessionReplay: true,
