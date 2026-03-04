@@ -35,8 +35,10 @@ export const Textarea = ({
         )}
       />
 
-      {error?.map((error, index) => (
-        <ErrorMessage key={index}>{error.message}</ErrorMessage>
+      {error?.map((errorItem) => (
+        <ErrorMessage key={`${name}-${errorItem.message}`}>
+          {errorItem.message}
+        </ErrorMessage>
       ))}
     </View>
   );

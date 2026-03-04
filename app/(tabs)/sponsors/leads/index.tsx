@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
-import { View, Text, SafeAreaView, Button } from 'react-native';
+import { View, Text } from 'react-native';
 
 import { Link, Stack, useNavigation } from 'expo-router';
 import { graphql } from '@/graphql';
 import { useQuery } from '@apollo/client';
 import { useCurrentConference } from '@/hooks/use-current-conference';
 import { LegendList } from '@legendapp/list';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const MY_LEADS_QUERY = graphql(`
   query MyLeads($conferenceCode: String!) {

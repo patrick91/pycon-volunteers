@@ -71,9 +71,11 @@ export const UserProfile = ({
 
       <Textarea name="notes" control={control} defaultValue={notes} />
 
-      <Button onPress={handleSubmit(updateNotes)} loading={loading}>
-        Update notes
-      </Button>
+      <Button
+        onPress={handleSubmit(updateNotes)}
+        loading={loading}
+        label="Update notes"
+      />
 
       {data && <Text className="text-green-700">Notes updated! 👍</Text>}
       {error && <Text className="text-red-500">{error.message}</Text>}

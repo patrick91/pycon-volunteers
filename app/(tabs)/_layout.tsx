@@ -3,9 +3,8 @@ import React from 'react';
 
 import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useSession } from '@/context/auth';
+import { AppIcon } from '@/components/ui/AppIcon';
 
 export default function TabLayout() {
   const { user } = useSession();
@@ -27,7 +26,7 @@ export default function TabLayout() {
         options={{
           title: 'Schedule',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="event-note" size={24} color={color} />
+            <AppIcon name="calendar" size={24} color={color} />
           ),
         }}
       />
@@ -40,7 +39,7 @@ export default function TabLayout() {
           href: canSeeSponsorSection ? undefined : null,
           title: 'Leads',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="store" size={24} color={color} />
+            <AppIcon name="storefront" size={24} color={color} />
           ),
         }}
       />
@@ -51,7 +50,7 @@ export default function TabLayout() {
           href: canSeeSponsorSection ? undefined : null,
           title: 'Scan',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="qr-code" size={24} color={color} />
+            <AppIcon name="qrcode" size={24} color={color} />
           ),
         }}
       />
@@ -61,11 +60,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="face-man-profile"
-              size={24}
-              color={color}
-            />
+            <AppIcon name="person.crop.circle" size={24} color={color} />
           ),
         }}
       />

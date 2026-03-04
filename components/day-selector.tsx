@@ -1,6 +1,6 @@
-import * as DropdownMenu from "zeego/dropdown-menu";
-import { Text, View } from "react-native";
-import Feather from "@expo/vector-icons/Feather";
+import * as DropdownMenu from 'zeego/dropdown-menu';
+import { Text, View } from 'react-native';
+import { AppIcon } from '@/components/ui/AppIcon';
 
 export function DaySelector({
   days,
@@ -18,13 +18,13 @@ export function DaySelector({
           <Text
             style={{
               fontSize: 16,
-              fontWeight: "600",
-              color: "#000",
+              fontWeight: '600',
+              color: '#000',
             }}
           >
             {days.find((day) => day.id === selectedDay)?.label}
           </Text>
-          <Feather name="chevron-down" size={22} color="black" />
+          <AppIcon name="chevron.down" size={22} color="black" />
         </View>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>

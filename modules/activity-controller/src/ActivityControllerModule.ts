@@ -23,6 +23,3 @@ export const stopLiveActivity: types.StopLiveActivityFn = async () => {
 export const isLiveActivityRunning: types.IsLiveActivityRunningFn = () => {
   return nativeModule.isLiveActivityRunning();
 };
-
-export const areLiveActivitiesEnabled: boolean =
-  nativeModule.areLiveActivitiesEnabled;

@@ -12,5 +12,5 @@ export const graphql = initGraphQLTada<{
   };
 }>();
 
-export type { FragmentOf, ResultOf, VariablesOf } from 'gql.tada';
+export type { FragmentOf, ResultOf } from 'gql.tada';
 export { readFragment } from 'gql.tada';
