@@ -1,8 +1,6 @@
-import { Button } from '@/components/form/button';
 import { type FragmentOf, graphql, readFragment } from '@/graphql';
 import { useCurrentConference } from '@/hooks/use-current-conference';
 import { useSuspenseQuery } from '@apollo/client';
-import { useRouter } from 'expo-router';
 import { SafeAreaView, ScrollView, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -113,7 +111,11 @@ export default function Profile() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1 px-4">
-        <TicketList data={data?.me} />
+        {data?.me ? (
+          <TicketList data={data.me} />
+        ) : (
+          <Text className="mt-4 text-lg">No tickets available.</Text>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

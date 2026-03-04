@@ -37,7 +37,7 @@ const NotLoggedIn = () => {
       <Text className="text-2xl font-bold">Hi there!</Text>
 
       <Text className="text-sm text-gray-800 mb-4">
-        You're not logged in. Please sign in to view your profile.
+        You&apos;re not logged in. Please sign in to view your profile.
       </Text>
 
       <Button onPress={() => router.push('/sign-in')}>Sign In</Button>

@@ -100,7 +100,7 @@ export function useTalkManagerNotifications({
   talk,
   nextSession,
 }: {
-  talk: { id: string; title: string };
+  talk: { id: string; title: string } & FragmentOf<typeof SPEAKERS_FRAGMENT>;
   nextSession?: { title: string } | null;
 }) {
   const { user } = useSession();
