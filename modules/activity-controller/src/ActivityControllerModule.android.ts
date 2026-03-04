@@ -15,5 +15,3 @@ export const stopLiveActivity: types.StopLiveActivityFn = async () => {
 export const isLiveActivityRunning: types.IsLiveActivityRunningFn = () => {
   return false;
 };
-
-export const areLiveActivitiesEnabled: boolean = false;

@@ -58,9 +58,8 @@ const LeadScanCamera = ({
               data: 'https://pycon.it/b/wqdkk',
             })
           }
-        >
-          Scan
-        </Button>
+          label="Scan"
+        />
       </View>
     );
   }
@@ -170,7 +169,7 @@ export default function SponsorScan() {
   return (
     <View className="flex-1 justify-center items-center">
       {scanned ? (
-        <Button onPress={() => setScanned(null)}>Scan again</Button>
+        <Button onPress={() => setScanned(null)} label="Scan again" />
       ) : (
         <LeadScanCamera handleBarCodeScanned={handleBarCodeScanned} />
       )}

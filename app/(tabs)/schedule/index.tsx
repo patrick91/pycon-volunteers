@@ -7,10 +7,9 @@ import { LegendList } from '@legendapp/list';
 import { parseISO } from 'date-fns';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Text, TextInput, View, TouchableOpacity } from 'react-native';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Path } from 'react-native-svg';
-import Svg from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { useSession } from '@/context/auth';
+import { AppIcon } from '@/components/ui/AppIcon';
 
 // Define types for the flattened list items
 interface TimeHeaderItem {
@@ -128,7 +127,7 @@ function ScheduleListView({
   const listHeader = useMemo(() => {
     return (
       <View className="border-b-2 border-black bg-white flex-row items-center pl-3">
-        <FontAwesome name="search" size={24} color="black" />
+        <AppIcon name="magnifyingglass" size={24} color="black" />
         {searchInput}
       </View>
     );

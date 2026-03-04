@@ -1,4 +1,4 @@
-import { View, Text, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { graphql, readFragment, type FragmentOf } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
 import { useSession } from '@/context/auth';
@@ -8,6 +8,7 @@ import { useCurrentConference } from '@/hooks/use-current-conference';
 import { useRouter } from 'expo-router';
 
 import * as Application from 'expo-application';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const USER_PROFILE_FRAGMENT = graphql(`
   fragment UserProfile on User {
@@ -40,7 +41,7 @@ const NotLoggedIn = () => {
         You&apos;re not logged in. Please sign in to view your profile.
       </Text>
 
-      <Button onPress={() => router.push('/sign-in')}>Sign In</Button>
+      <Button onPress={() => router.push('/sign-in')} label="Sign In" />
     </View>
   );
 };
@@ -93,9 +94,7 @@ const ProfileInfo = ({
       </View>
 
       <View className="mt-4">
-        <Button onPress={() => router.push('/profile/tickets')}>
-          View tickets
-        </Button>
+        <Button onPress={() => router.push('/profile/tickets')} label="View tickets" />
       </View>
 
       <View className="mt-4">
@@ -103,9 +102,8 @@ const ProfileInfo = ({
           onPress={() => signOut()}
           disabled={isSigningOut}
           loading={isSigningOut}
-        >
-          Sign Out
-        </Button>
+          label="Sign Out"
+        />
       </View>
     </View>
   );

@@ -1,8 +1,7 @@
 import {
   createContext,
   useContext,
-  useState,
-  useEffect,
+  useMemo,
   type ReactNode,
 } from 'react';
 import { useStorageState } from '@/hooks/use-storage-state';
@@ -23,27 +22,30 @@ type TalkConfigurationContextType = {
 const TalkConfigurationContext =
   createContext<TalkConfigurationContextType | null>(null);
 
+const parseConfigurations = (state: string | null): TalkConfigurations => {
+  if (!state) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(state);
+  } catch {
+    return {};
+  }
+};
+
 export function TalkConfigurationProvider({
   children,
 }: { children: ReactNode }) {
-  const [[isLoading, state], setState] = useStorageState('talk-configurations');
-  const [configurations, setConfigurations] = useState<TalkConfigurations>(
-    state ? JSON.parse(state) : {},
-  );
-
-  // Update local state when storage changes
-  useEffect(() => {
-    if (state) {
-      setConfigurations(JSON.parse(state));
-    }
-  }, [state]);
+  const [[_isLoading, state], setState] = useStorageState('talk-configurations');
+  const configurations = useMemo(() => parseConfigurations(state), [state]);
 
   const getConfiguration = (talkId: string): TalkConfiguration => {
     return configurations[talkId] || { hasQa: true };
   };
 
   const setHasQa = (talkId: string, hasQa: boolean) => {
-    const newConfigurations = {
+    const nextConfigurations = {
       ...configurations,
       [talkId]: {
         ...getConfiguration(talkId),
@@ -51,8 +53,7 @@ export function TalkConfigurationProvider({
       },
     };
 
-    setState(JSON.stringify(newConfigurations));
-    setConfigurations(newConfigurations);
+    setState(JSON.stringify(nextConfigurations));
   };
 
   const value = { getConfiguration, setHasQa };

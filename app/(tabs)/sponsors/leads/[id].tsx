@@ -2,7 +2,8 @@ import { UserProfile } from '@/components/sponsors/user-profile';
 import { graphql } from '@/graphql';
 import { useQuery } from '@apollo/client';
 import { useLocalSearchParams, Stack } from 'expo-router';
-import { View, Text, SafeAreaView, ScrollView } from 'react-native';
+import { Text, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const BADGE_SCAN_QUERY = graphql(`
   query BadgeScan($id: ID!) {

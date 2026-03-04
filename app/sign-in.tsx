@@ -128,7 +128,7 @@ export default function SignIn() {
               name="email"
               render={({ field: { onChange, value } }) => (
                 <View className="mb-8">
-                  <Label>Email</Label>
+                  <Label text="Email" />
                   <Input
                     placeholder="guido@python.org"
                     keyboardType="email-address"
@@ -151,7 +151,7 @@ export default function SignIn() {
               name="password"
               render={({ field: { onChange, value } }) => (
                 <View>
-                  <Label>Password</Label>
+                  <Label text="Password" />
                   <Input
                     placeholder="ilovepyconit"
                     secureTextEntry
@@ -175,9 +175,8 @@ export default function SignIn() {
             onPress={handleSubmit(onSubmit)}
             disabled={loading}
             loading={loading}
-          >
-            Login
-          </Button>
+            label="Login"
+          />
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>

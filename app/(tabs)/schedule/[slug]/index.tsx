@@ -381,8 +381,9 @@ function Skeleton() {
 
       {/* Speakers skeleton */}
       <View className="border-b-2">
-        {[1, 2].map((i) => (
-          <View key={i} className="flex-row gap-2 pr-4 border-b-2">
+        {['speaker-placeholder-1', 'speaker-placeholder-2'].map(
+          (placeholderKey) => (
+            <View key={placeholderKey} className="flex-row gap-2 pr-4 border-b-2">
             <View className="border-r-2">
               <View className="w-20 h-20 bg-gray-200" />
             </View>
@@ -390,8 +391,9 @@ function Skeleton() {
               <View className="h-6 w-1/2 bg-gray-200 rounded mb-2" />
               <View className="h-4 w-3/4 bg-gray-200 rounded" />
             </View>
-          </View>
-        ))}
+            </View>
+          ),
+        )}
       </View>
 
       {/* Talk Configuration skeleton */}

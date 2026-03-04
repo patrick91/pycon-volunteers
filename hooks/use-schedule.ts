@@ -147,7 +147,7 @@ function getDailySchedule(data: ResultOf<typeof SCHEDULE_QUERY>, day: Date) {
   return { items: dayItems, rooms: dayRooms };
 }
 
-export type DaySchedule = ReturnType<typeof getDailySchedule>;
+type DaySchedule = ReturnType<typeof getDailySchedule>;
 
 export const useSchedule = () => {
   const { code } = useCurrentConference();

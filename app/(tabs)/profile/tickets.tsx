@@ -1,8 +1,9 @@
 import { type FragmentOf, graphql, readFragment } from '@/graphql';
 import { useCurrentConference } from '@/hooks/use-current-conference';
 import { useSuspenseQuery } from '@apollo/client';
-import { SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const USER_TICKETS_FRAGMENT = graphql(`
   fragment UserTickets on User {
