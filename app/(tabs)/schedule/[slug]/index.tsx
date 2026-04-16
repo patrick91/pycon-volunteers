@@ -17,13 +17,16 @@ import { useSession } from '@/context/auth';
 import { useTalkConfiguration } from '@/context/talk-configuration';
 import { useSchedule } from '@/hooks/use-schedule';
 import { useTalkManagerNotifications } from '@/hooks/use-talk-manager-notifications';
+import {
+  isValidExternalUrl,
+  openExternalUrl,
+} from '@/utils/open-external-url';
 import { getRoomText } from '@/utils/schedule/get-room-text';
 import { isAfter, isEqual, parseISO } from 'date-fns';
 import { Image } from 'expo-image';
 import * as Notifications from 'expo-notifications';
 import { Suspense, useState } from 'react';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
-import * as WebBrowser from 'expo-web-browser';
 
 import { useCurrentConference } from '@/hooks/use-current-conference';
 
@@ -105,10 +108,14 @@ function AbstractButton({ abstract }: { abstract: string }) {
 }
 
 function SlidoButton({ slidoUrl }: { slidoUrl: string }) {
+  if (!isValidExternalUrl(slidoUrl)) {
+    return null;
+  }
+
   return (
     <Pressable
       onPress={() => {
-        WebBrowser.openBrowserAsync(slidoUrl);
+        void openExternalUrl(slidoUrl);
       }}
       className="bg-[#FCE8DE] p-4 border-2 border-black"
     >
