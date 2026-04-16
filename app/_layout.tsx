@@ -79,7 +79,7 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
           cache,
           link: responseLogger.concat(
             new HttpLink({
-              uri: 'https://2025.pycon.it/graphql',
+              uri: 'https://2026.pycon.it/graphql',
               credentials: 'include',
             }),
           ),

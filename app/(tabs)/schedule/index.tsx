@@ -158,7 +158,7 @@ function ScheduleListView({
   );
 }
 export default function SchedulePage() {
-  const defaultDay = '2025-05-29';
+  const defaultDay = '2026-05-27';
   const today = new Date().toISOString().split('T')[0];
 
   const { days, schedule } = useSchedule();

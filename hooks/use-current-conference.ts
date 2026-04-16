@@ -1,5 +1,5 @@
 export function useCurrentConference() {
   return {
-    code: 'pycon2025',
+    code: 'pycon2026',
   };
 }
