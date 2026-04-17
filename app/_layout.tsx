@@ -103,12 +103,15 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <ApolloProvider client={client}>
       <SessionProvider
-        onSignOut={() => {
+        onSignOut={async () => {
           console.log('[Apollo] Signing out');
 
-          persistor?.remove();
-          persistor?.purge();
-          client.resetStore();
+          try {
+            await persistor?.remove();
+            await persistor?.purge();
+          } catch (error) {
+            console.error('[Apollo] Error clearing persisted cache during sign out:', error);
+          }
         }}
       >
         {children}

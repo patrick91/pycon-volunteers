@@ -8,6 +8,7 @@ import { useStorageState } from '@/hooks/use-storage-state';
 import { usePostHog } from 'posthog-react-native';
 import { graphql } from '@/graphql';
 import { useApolloClient, useMutation } from '@apollo/client';
+import * as Sentry from '@sentry/react-native';
 
 type User = {
   id: string;
@@ -57,7 +58,7 @@ const SIGN_OUT_MUTATION = graphql(`
 export function SessionProvider({
   children,
   onSignOut,
-}: PropsWithChildren<{ onSignOut: () => void }>) {
+}: PropsWithChildren<{ onSignOut: () => Promise<void> | void }>) {
   const [[isLoading, sessionData], setSession] = useStorageState('session');
   const [signOut, { loading: isSigningOut }] = useMutation(SIGN_OUT_MUTATION);
 
@@ -83,6 +84,22 @@ export function SessionProvider({
 
   const client = useApolloClient();
 
+  const clearCurrentUserFromCache = () => {
+    client.cache.evict({ id: 'ROOT_QUERY', fieldName: 'me' });
+    client.cache.gc();
+  };
+
+  const addAuthApolloBreadcrumb = (
+    message: string,
+    level: 'info' | 'error' = 'info',
+  ) => {
+    Sentry.addBreadcrumb({
+      category: 'auth.apollo',
+      message,
+      level,
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -99,20 +116,61 @@ export function SessionProvider({
 
           setSession(JSON.stringify(userInfo));
 
-          // not fully sure why expo does this (if it is expo)
-          // but the schedule query seems to be triggered when showing
-          // the login screen, so it loads the data before the user is
-          // logged in.
-          client.resetStore();
+          // Avoid resetStore/clearStore here: both cancel in-flight queries
+          // and can surface Apollo invariant 42 as an unhandled rejection.
+          clearCurrentUserFromCache();
+
+          addAuthApolloBreadcrumb(
+            'Starting observable query refetch after sign in',
+          );
+          void client
+            .reFetchObservableQueries()
+            .then(() => {
+              addAuthApolloBreadcrumb(
+                'Finished observable query refetch after sign in',
+              );
+            })
+            .catch((error) => {
+              addAuthApolloBreadcrumb(
+                'Failed observable query refetch after sign in',
+                'error',
+              );
+              console.error(
+                '[Apollo] Error refetching queries after sign in:',
+                error,
+              );
+            });
         },
         signOut: async () => {
           console.log('[Auth] Signing out');
 
           await signOut();
 
+          clearCurrentUserFromCache();
           setSession(null);
 
-          onSignOut();
+          await onSignOut();
+
+          addAuthApolloBreadcrumb(
+            'Starting observable query refetch after sign out',
+          );
+          void client
+            .reFetchObservableQueries()
+            .then(() => {
+              addAuthApolloBreadcrumb(
+                'Finished observable query refetch after sign out',
+              );
+            })
+            .catch((error) => {
+              addAuthApolloBreadcrumb(
+                'Failed observable query refetch after sign out',
+                'error',
+              );
+              console.error(
+                '[Apollo] Error refetching queries after sign out:',
+                error,
+              );
+            });
 
           posthog.reset();
         },

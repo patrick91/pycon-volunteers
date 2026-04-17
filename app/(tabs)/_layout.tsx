@@ -31,8 +31,6 @@ export default function TabLayout() {
         }}
       />
 
-      <Tabs.Screen name="profile/tickets" options={{ href: null }} />
-
       <Tabs.Screen
         name="sponsors/leads"
         options={{
