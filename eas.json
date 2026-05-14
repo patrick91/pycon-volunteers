@@ -29,6 +29,7 @@
   "submit": {
     "production": {
       "ios": {
+        "ascAppId": "6744279224",
         "companyName": "Farbun LTD"
       }
     }
