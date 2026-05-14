@@ -1,6 +1,6 @@
-import { type FragmentOf, graphql, readFragment } from '@/graphql';
+import { graphql } from '@/graphql';
 import { useSuspenseQuery } from '@apollo/client';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { View, Text, ScrollView } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { useCurrentConference } from '@/hooks/use-current-conference';

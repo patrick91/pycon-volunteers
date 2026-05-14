@@ -24,7 +24,6 @@ import {
 import { getRoomText } from '@/utils/schedule/get-room-text';
 import { isAfter, isEqual, parseISO } from 'date-fns';
 import { Image } from 'expo-image';
-import * as Notifications from 'expo-notifications';
 import { Suspense, useState } from 'react';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextInput, TextInputProps, View } from 'react-native';
+import { TextInput, type TextInputProps } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
 interface InputProps extends TextInputProps {

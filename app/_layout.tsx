@@ -1,28 +1,19 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SessionProvider, useSession } from '@/context/auth';
 import {
   ApolloClient,
   InMemoryCache,
   ApolloProvider,
   HttpLink,
-  NormalizedCacheObject,
   ApolloLink,
 } from '@apollo/client';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
-import { onError } from '@apollo/client/link/error';
-import { AsyncStorageWrapper, CachePersistor } from 'apollo3-cache-persist';
 import '../global.css';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TalkConfigurationProvider } from '@/context/talk-configuration';
@@ -49,9 +40,6 @@ const cache = new InMemoryCache();
 
 const APIProvider = ({ children }: { children: React.ReactNode }) => {
   const [client, setClient] = useState<ApolloClient<any> | null>(null);
-
-  const [persistor, setPersistor] =
-    useState<CachePersistor<NormalizedCacheObject>>();
 
   // Initialize cache persistence and create Apollo client
   // biome-ignore lint/correctness/useExhaustiveDependencies: not needed
@@ -105,13 +93,6 @@ const APIProvider = ({ children }: { children: React.ReactNode }) => {
       <SessionProvider
         onSignOut={async () => {
           console.log('[Apollo] Signing out');
-
-          try {
-            await persistor?.remove();
-            await persistor?.purge();
-          } catch (error) {
-            console.error('[Apollo] Error clearing persisted cache during sign out:', error);
-          }
         }}
       >
         {children}
@@ -127,7 +108,7 @@ if (__DEV__) {
 }
 
 const AppStack = ({ fontsLoaded }: { fontsLoaded: boolean }) => {
-  const { user, isLoading } = useSession();
+  const { isLoading } = useSession();
 
   const [isReady, setIsReady] = useState(false);
 

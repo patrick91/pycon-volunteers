@@ -6,7 +6,7 @@ import { getTimer } from "./get-timer";
 import { getDeltaAndStatus } from "./get-delta-and-status";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useTalkConfiguration } from "@/context/talk-configuration";
-import clsx from "clsx";
+import { clsx } from "clsx";
 import * as Haptics from "expo-haptics";
 import { useSession } from "@/context/auth";
 

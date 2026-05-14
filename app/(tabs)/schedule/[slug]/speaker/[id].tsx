@@ -1,6 +1,5 @@
 import { View, Text, ScrollView } from "react-native";
-import { Stack } from "expo-router";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { graphql, readFragment } from "@/graphql";
 import { useSuspenseQuery } from "@apollo/client";
 import { SPEAKERS_FRAGMENT } from "..";

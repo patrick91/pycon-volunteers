@@ -3,7 +3,7 @@ import { type Control, useController } from 'react-hook-form';
 import { TextInput, type TextInputProps, View } from 'react-native';
 
 import { ErrorMessage } from './error-message';
-import clsx from 'clsx';
+import { clsx } from 'clsx';
 
 export const Textarea = ({
   name,
