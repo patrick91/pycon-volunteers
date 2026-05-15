@@ -111,72 +111,79 @@ export default function SignIn() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
-          contentContainerClassName="flex-1 p-6 justify-between"
+          contentContainerClassName="flex-grow px-6"
+          contentContainerStyle={{
+            paddingTop: insets.top + 24,
+            paddingBottom: insets.bottom + 24,
+          }}
           keyboardShouldPersistTaps="handled"
-          style={{ paddingBottom: insets.bottom, paddingTop: insets.top }}
         >
-          <View className="gap-6">
-            <Logo width={150} />
-            <Text className="font-sans-semibold text-black text-5xl">
-              Login
-            </Text>
+          <View className="flex-1">
+            <View className="gap-6">
+              <Logo width={150} />
+              <Text className="font-sans-semibold text-black text-5xl">
+                Login
+              </Text>
+            </View>
+
+            <View className="mt-24">
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, value } }) => (
+                  <View className="mb-8">
+                    <Label text="Email" />
+                    <Input
+                      placeholder="guido@python.org"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      onChangeText={onChange}
+                      value={value}
+                      textContentType="emailAddress"
+                    />
+                    {errors.email && (
+                      <Text className="mt-2 text-red-500 font-sans-semibold text-sm">
+                        {errors.email.message}
+                      </Text>
+                    )}
+                  </View>
+                )}
+              />
+
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onChange, value } }) => (
+                  <View>
+                    <Label text="Password" />
+                    <Input
+                      placeholder="ilovepyconit"
+                      secureTextEntry
+                      onChangeText={onChange}
+                      value={value}
+                      onSubmitEditing={handleSubmit(onSubmit)}
+                      returnKeyType="done"
+                      textContentType="password"
+                    />
+                    {errors.password && (
+                      <Text className="mt-2 text-red-500 font-sans-semibold text-sm">
+                        {errors.password.message}
+                      </Text>
+                    )}
+                  </View>
+                )}
+              />
+            </View>
+
+            <View className="mt-auto pt-12">
+              <Button
+                onPress={handleSubmit(onSubmit)}
+                disabled={loading}
+                loading={loading}
+                label="Login"
+              />
+            </View>
           </View>
-
-          <View>
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onChange, value } }) => (
-                <View className="mb-8">
-                  <Label text="Email" />
-                  <Input
-                    placeholder="guido@python.org"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    onChangeText={onChange}
-                    value={value}
-                    textContentType="emailAddress"
-                  />
-                  {errors.email && (
-                    <Text className="mt-2 text-red-500 font-sans-semibold text-sm">
-                      {errors.email.message}
-                    </Text>
-                  )}
-                </View>
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { onChange, value } }) => (
-                <View>
-                  <Label text="Password" />
-                  <Input
-                    placeholder="ilovepyconit"
-                    secureTextEntry
-                    onChangeText={onChange}
-                    value={value}
-                    onSubmitEditing={handleSubmit(onSubmit)}
-                    returnKeyType="done"
-                    textContentType="password"
-                  />
-                  {errors.password && (
-                    <Text className="mt-2 text-red-500 font-sans-semibold text-sm">
-                      {errors.password.message}
-                    </Text>
-                  )}
-                </View>
-              )}
-            />
-          </View>
-
-          <Button
-            onPress={handleSubmit(onSubmit)}
-            disabled={loading}
-            loading={loading}
-            label="Login"
-          />
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>

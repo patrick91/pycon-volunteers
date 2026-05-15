@@ -3,13 +3,14 @@ import { DaySelector } from '@/components/day-selector';
 
 import { type Item, SessionItem } from '@/components/session-item';
 import { type ItemWithDuration, useSchedule } from '@/hooks/use-schedule';
-import { LegendList } from '@legendapp/list';
+import { LegendList, type LegendListRef } from '@legendapp/list';
 import { parseISO } from 'date-fns';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Text, TextInput, View, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useSession } from '@/context/auth';
 import { AppIcon } from '@/components/ui/AppIcon';
+import { useScrollToTop } from '@react-navigation/native';
 
 // Define types for the flattened list items
 interface TimeHeaderItem {
@@ -31,11 +32,13 @@ function ScheduleListView({
   searchInput,
   rooms,
   showDate,
+  listRef,
 }: {
   items: ItemWithDuration[];
   searchInput: React.ReactNode;
   rooms: { name: string; type: string }[];
   showDate: boolean;
+  listRef: React.RefObject<LegendListRef | null>;
 }) {
   // Group sessions by time
   const sessionsByTime = useMemo(() => {
@@ -135,8 +138,10 @@ function ScheduleListView({
 
   return (
     <LegendList
+      ref={listRef}
       className="flex-1 bg-[#FAF5F3]"
       contentContainerStyle={{ paddingBottom: 86 }}
+      scrollsToTop
       ListEmptyComponent={
         <View className="flex-1 justify-center items-center pt-8">
           <Text>No results found for your search.</Text>
@@ -171,6 +176,13 @@ export default function SchedulePage() {
   const [showOnlyManagedTalks, setShowOnlyManagedTalks] = useState(false);
   const [showDate, setShowDate] = useState(false);
   const { user } = useSession();
+  const listRef = useRef<LegendListRef | null>(null);
+
+  useScrollToTop(listRef);
+
+  const scrollToTop = useCallback(() => {
+    listRef.current?.scrollToOffset?.({ offset: 0, animated: true });
+  }, []);
 
   const allItems = useMemo(() => {
     return Object.values(schedule)
@@ -229,7 +241,11 @@ export default function SchedulePage() {
         options={{
           title: 'Schedule',
           headerTitle: () => (
-            <View className="flex-1 flex flex-row justify-center items-center">
+            <TouchableOpacity
+              activeOpacity={0.8}
+              className="flex-1 flex-row items-center justify-center"
+              onPress={scrollToTop}
+            >
               <DaySelector
                 days={days}
                 onDayChange={(newDay) => {
@@ -239,7 +255,7 @@ export default function SchedulePage() {
                 }}
                 selectedDay={day}
               />
-            </View>
+            </TouchableOpacity>
           ),
 
           headerRight: user?.canSeeTalkTimer
@@ -270,6 +286,7 @@ export default function SchedulePage() {
         searchInput={searchInput}
         showDate={showDate}
         rooms={schedule[day]?.rooms ?? []}
+        listRef={listRef}
       />
     </View>
   );

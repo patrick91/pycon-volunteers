@@ -94,7 +94,10 @@ const ProfileInfo = ({
       </View>
 
       <View className="mt-4">
-        <Button onPress={() => router.push('/profile/tickets')} label="View tickets" />
+        <Button
+          onPress={() => router.push('./tickets')}
+          label="View tickets"
+        />
       </View>
 
       <View className="mt-4">
@@ -120,7 +123,7 @@ export default function Profile() {
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
       <ScrollView className="flex-1">
         <ProfileInfo data={data?.me} />
       </ScrollView>

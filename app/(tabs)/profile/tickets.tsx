@@ -110,8 +110,8 @@ export default function Profile() {
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1 px-4">
+    <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+      <ScrollView className="flex-1 px-4" contentContainerClassName="pt-4">
         {data?.me ? (
           <TicketList data={data.me} />
         ) : (
